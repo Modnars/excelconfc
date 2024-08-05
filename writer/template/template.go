@@ -2,64 +2,36 @@ package wrtmpl
 
 import (
 	"text/template"
-
-	"github.com/hashicorp/go-multierror"
 )
 
-type WrTemplateType string
-type tmplMap map[WrTemplateType]*template.Template
+type wrTemplateType string
+type tmplMap map[wrTemplateType]*template.Template
 
 const (
-	WrTmplGoXXConfMap         = WrTemplateType("GoXXConfMap")
-	WrTmplGoFileCommentSource = WrTemplateType("GoFileCommentSource")
-	WrTmplProtoFileComment    = WrTemplateType("ProtoFileComment")
-	WrTmplProtoDecl           = WrTemplateType("ProtoDecl")
-	WrTmplJsonFields          = WrTemplateType("JsonFields")
+	WrTmplGoXXConfMap         = wrTemplateType("GoXXConfMap")
+	WrTmplGoFileCommentSource = wrTemplateType("GoFileCommentSource")
+	WrTmplProtoFileComment    = wrTemplateType("ProtoFileComment")
+	WrTmplProtoDecl           = wrTemplateType("ProtoDecl")
+	WrTmplJsonFields          = wrTemplateType("JsonFields")
 )
 
 var (
 	wrTemplates = make(tmplMap)
 )
 
-func GetWrTemplate(tmplType WrTemplateType) *template.Template {
+func GetWrTemplate(tmplType wrTemplateType) *template.Template {
 	return wrTemplates[tmplType]
 }
 
 func init() {
-	var errRes *multierror.Error
-
 	// Go templates
-	if tmpl, err := template.New(string(WrTmplGoXXConfMap)).Parse(tmplGoXXConfMapText); err == nil {
-		wrTemplates[WrTmplGoXXConfMap] = tmpl
-	} else {
-		errRes = multierror.Append(errRes, err)
-	}
-	if tmpl, err := template.New(string(WrTmplGoFileCommentSource)).Parse(tmplGoFileCommentSourceText); err == nil {
-		wrTemplates[WrTmplGoFileCommentSource] = tmpl
-	} else {
-		errRes = multierror.Append(errRes, err)
-	}
+	wrTemplates[WrTmplGoXXConfMap] = template.Must(template.New(string(WrTmplGoXXConfMap)).Parse(tmplGoXXConfMapText))
+	wrTemplates[WrTmplGoFileCommentSource] = template.Must(template.New(string(WrTmplGoFileCommentSource)).Parse(tmplGoFileCommentSourceText))
 
 	// Protobuf templates
-	if tmpl, err := template.New(string(WrTmplProtoFileComment)).Parse(tmplProtoFileCommentText); err == nil {
-		wrTemplates[WrTmplProtoFileComment] = tmpl
-	} else {
-		errRes = multierror.Append(errRes, err)
-	}
-	if tmpl, err := template.New(string(WrTmplProtoDecl)).Parse(tmplProtoDeclText); err == nil {
-		wrTemplates[WrTmplProtoDecl] = tmpl
-	} else {
-		errRes = multierror.Append(errRes, err)
-	}
+	wrTemplates[WrTmplProtoFileComment] = template.Must(template.New(string(WrTmplProtoFileComment)).Parse(tmplProtoFileCommentText))
+	wrTemplates[WrTmplProtoDecl] = template.Must(template.New(string(WrTmplProtoDecl)).Parse(tmplProtoDeclText))
 
 	// Json templates
-	if tmpl, err := template.New(string(WrTmplJsonFields)).Parse(tmplJsonFieldsText); err == nil {
-		wrTemplates[WrTmplJsonFields] = tmpl
-	} else {
-		errRes = multierror.Append(errRes, err)
-	}
-
-	if errRes.ErrorOrNil() != nil {
-		panic(errRes.ErrorOrNil())
-	}
+	wrTemplates[WrTmplJsonFields] = template.Must(template.New(string(WrTmplJsonFields)).Parse(tmplJsonFieldsText))
 }

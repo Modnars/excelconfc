@@ -1,0 +1,43 @@
+# git version 2.19.1
+
+*
+!*/
+!/**/*.go
+!/**/*.md
+!/**/*.sh
+!/**/*.xml
+!/**/*.json
+!/**/*.yaml
+!/**/*.proto
+
+!trpc-cli-test.json
+
+# Test data
+testdata
+
+# go.mod & go.sum
+!/**/go.*
+
+# Auto generated code
+/trpc/
+/internal/dbproxysvr/dbtable/**/*.go
+*.pb.go
+*.ec.go
+*.ec.json
+*.ec.proto
+
+# docker
+!.dockerignore
+!Dockerfile
+!*.dockerfile
+.docker-image/
+
+# Helm
+!.helmignore
+output.yaml
+
+# Assets
+.assets
+
+# Local debug files
+*.local
