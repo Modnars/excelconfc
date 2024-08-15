@@ -3,7 +3,6 @@ package writer
 import (
 	"fmt"
 	"io"
-	"os"
 	"path"
 	"strings"
 
@@ -97,6 +96,5 @@ func WriteToJsonFile(headers [][]string, excelRows [][]string, filePath string, 
 	indent -= 1
 	wrf(&wr, "}\n")
 
-	os.WriteFile(genOutFilePath(outDir, sheetName, outJsonFileSuffix), []byte(wr.String()), outFilePerm)
-	return nil
+	return WriteToFile(genOutFilePath(outDir, sheetName, outJsonFileSuffix), []byte(wr.String()))
 }

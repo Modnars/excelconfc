@@ -5,6 +5,8 @@ import (
 	"go/format"
 	"io"
 	"io/fs"
+	"os"
+	"path"
 
 	"git.woa.com/modnarshen/excelconfc/util"
 )
@@ -58,4 +60,21 @@ func toOutBytes(output string) ([]byte, error) {
 		}
 	}
 	return outBytes, nil
+}
+
+func WriteToFile(filePath string, writeBytes []byte) error {
+	if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
+		util.LogError("Failed to create file: %v", err)
+		return err
+	}
+	outFile, err := os.Create(filePath)
+	if err != nil {
+		util.LogError("Failed to create file: %v", err)
+		return err
+	}
+	defer outFile.Close()
+	if _, err := outFile.Write(writeBytes); err != nil {
+		return err
+	}
+	return nil
 }

@@ -2,7 +2,6 @@ package writer
 
 import (
 	"io"
-	"os"
 	"path"
 	"strings"
 
@@ -75,6 +74,5 @@ func WriteToProtoFile(headers [][]string, filePath string, sheetName string, goP
 		return err
 	}
 
-	os.WriteFile(genOutFilePath(outDir, sheetName, outProtoFileSuffix), []byte(wr.String()), outFilePerm)
-	return nil
+	return WriteToFile(genOutFilePath(outDir, sheetName, outProtoFileSuffix), []byte(wr.String()))
 }

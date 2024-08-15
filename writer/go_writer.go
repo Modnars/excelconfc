@@ -3,7 +3,6 @@ package writer
 import (
 	"fmt"
 	"io"
-	"os"
 	"path"
 	"strings"
 
@@ -152,9 +151,7 @@ func outputGoDefFile(goPackage string, outDir string) error {
 	if err != nil {
 		return err
 	}
-	os.WriteFile(genOutFilePath(outDir, "excelconf.def", outGoFileSuffix), outBytes, outFilePerm)
-
-	return nil
+	return WriteToFile(genOutFilePath(outDir, "excelconf.def", outGoFileSuffix), outBytes)
 }
 
 func outputGoFile(headers [][]string, filePath string, sheetName string, goPackage string, outDir string) error {
@@ -181,9 +178,7 @@ func outputGoFile(headers [][]string, filePath string, sheetName string, goPacka
 	if err != nil {
 		return err
 	}
-	os.WriteFile(genOutFilePath(outDir, sheetName, outGoFileSuffix), outBytes, outFilePerm)
-
-	return nil
+	return WriteToFile(genOutFilePath(outDir, sheetName, outGoFileSuffix), outBytes)
 }
 
 func WriteToGoFile(headers [][]string, filePath string, sheetName string, goPackage string, outDir string) error {
