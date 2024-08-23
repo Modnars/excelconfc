@@ -42,3 +42,7 @@ output.yaml
 # Local debug files
 *.local
 output*
+
+# Templates
+!*.tmpl
+!*.tpl

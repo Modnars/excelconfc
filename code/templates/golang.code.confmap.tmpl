@@ -1,0 +1,27 @@
+
+type {{.XXConfMap}} map[{{.XXConfKeyType}}]*{{.XXConf}}
+
+func (s {{.XXConfMap}}) LoadFromJsonFile(filePath string) error {
+	fileBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	jsonData := struct {
+		Data []{{.XXConf}} `json:"data"`
+	}{}
+	json.Unmarshal(fileBytes, &jsonData)
+	for _, conf := range jsonData.Data {
+		s[conf.{{.XXConfKeyField}}] = &conf
+	}
+	return nil
+}
+
+func (s {{.XXConfMap}}) GetVal(key {{.XXConfKeyType}}) *{{.XXConf}} {
+	return s[key]
+}
+
+var instance{{.XXConfMap}} = make({{.XXConfMap}})
+
+func Get{{.XXConfMap}}Inst() {{.XXConfMap}} {
+	return instance{{.XXConfMap}}
+}

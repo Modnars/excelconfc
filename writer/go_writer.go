@@ -77,7 +77,7 @@ func writeGoFileComments(wr io.Writer, filePath string, sheetName string) error 
 	template.ExecuteTemplate(wr, template.TmplGoCommentsHead, nil)
 	// 仅当 filePath 和 sheetName 有意义时才生成文件注释代码
 	if filePath != "" && sheetName != "" {
-		tmplParams := map[string]any{
+		tmplParams := template.T{
 			"SourceFile":  path.Base(filePath),
 			"SourceSheet": sheetName,
 		}
@@ -114,7 +114,7 @@ func writeGoConfStruct(wr io.Writer, headers [][]string, sheetName string) error
 
 func writeConfMapStruct(wr io.Writer, headers [][]string, sheetName string) error {
 	confKeyType, confKeyField := genGoConfKeyInfo(headers)
-	tmplParams := map[string]any{
+	tmplParams := template.T{
 		"XXConf":         sheetName,
 		"XXConfMap":      sheetName + "Map",
 		"XXConfKeyType":  confKeyType,

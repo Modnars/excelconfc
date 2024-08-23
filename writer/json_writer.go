@@ -6,9 +6,8 @@ import (
 	"path"
 	"strings"
 
+	"git.woa.com/modnarshen/excelconfc/code/template"
 	"git.woa.com/modnarshen/excelconfc/rules"
-	"git.woa.com/modnarshen/excelconfc/util"
-	wrtmpl "git.woa.com/modnarshen/excelconfc/writer/template"
 )
 
 const (
@@ -70,28 +69,20 @@ func WriteToJsonFile(headers [][]string, excelRows [][]string, filePath string, 
 
 	wr.WriteString("{\n")
 	indent += 1
-	tmplParams := struct {
-		IndentSpace string
-		Filepath    string
-		Basename    string
-		Sheet       string
-		Outdir      string
-	}{
-		IndentSpace: indentSpace(indent),
-		Filepath:    filePath,
-		Basename:    path.Base(filePath),
-		Sheet:       sheetName,
-		Outdir:      outDir,
+	tmplParams := template.T{
+		"Indentation": indentSpace(indent),
+		"FilePath":    filePath,
+		"Basename":    path.Base(filePath),
+		"Sheet":       sheetName,
+		"OutDir":      outDir,
 	}
-	if err := wrtmpl.GetWrTemplate(wrtmpl.WrTmplJsonFields).Execute(&wr, tmplParams); err != nil {
-		util.LogError("exectue template failed|tmplName:%s", wrtmpl.WrTmplJsonFields)
-		return err
+	if err := template.ExecuteTemplate(&wr, template.TmplJsonFields, tmplParams); err != nil {
+		return fmt.Errorf("exectue template failed|tmplName:%s|err:%w", template.TmplJsonFields, err)
 	}
 
 	// 传入一个 isLastElem 的参数来指示写入的内容是否是最后一个元素。如果是，就省略最后的 `,`，否则添加上 `,`
 	if err := writeJsonRowsData(&wr, headers, excelRows, indent, true); err != nil {
-		util.LogError("parse excel rows to JSON failed|file:%s|sheet:%s", filePath, sheetName)
-		return err
+		return fmt.Errorf("parse excel rows to JSON failed|file:%s|sheet:%s|err:%w", filePath, sheetName, err)
 	}
 	indent -= 1
 	wrf(&wr, "}\n")

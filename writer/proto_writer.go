@@ -1,13 +1,14 @@
 package writer
 
 import (
+	"fmt"
 	"io"
 	"path"
 	"strings"
 
+	"git.woa.com/modnarshen/excelconfc/code/template"
 	"git.woa.com/modnarshen/excelconfc/rules"
 	"git.woa.com/modnarshen/excelconfc/util"
-	wrtmpl "git.woa.com/modnarshen/excelconfc/writer/template"
 )
 
 const (
@@ -15,30 +16,23 @@ const (
 )
 
 func writeProtoFileComment(wr io.Writer, filePath string, sheetName string) error {
-	tmplParams := struct {
-		SourceFile  string
-		SourceSheet string
-	}{
-		SourceFile:  path.Base(filePath),
-		SourceSheet: sheetName,
+	tmplParams := template.T{
+		"SourceFile":  path.Base(filePath),
+		"SourceSheet": sheetName,
 	}
-	if err := wrtmpl.GetWrTemplate(wrtmpl.WrTmplProtoFileComment).Execute(wr, tmplParams); err != nil {
-		util.LogError("exectue template failed|tmplName:%s", wrtmpl.WrTmplProtoFileComment)
-		return err
+	if err := template.ExecuteTemplate(wr, template.TmplProtoComments, tmplParams); err != nil {
+		return fmt.Errorf("exectue template failed|tmplName:%s", template.TmplProtoComments)
 	}
 	return nil
 }
 
 func writeProtoDecl(wr io.Writer, goPackage string) error {
-	tmplParams := struct {
-		PackageName string
-		GoPackage   string
-	}{
-		PackageName: getPackageName(goPackage),
-		GoPackage:   goPackage,
+	tmplParams := template.T{
+		"PackageName": getPackageName(goPackage),
+		"GoPackage":   goPackage,
 	}
-	if err := wrtmpl.GetWrTemplate(wrtmpl.WrTmplProtoDecl).Execute(wr, tmplParams); err != nil {
-		util.LogError("exectue template failed|tmplName:%s", wrtmpl.WrTmplProtoDecl)
+	if err := template.ExecuteTemplate(wr, template.TmplProtoCodePackage, tmplParams); err != nil {
+		util.LogError("exectue template failed|tmplName:%s", template.TmplProtoCodePackage)
 		return err
 	}
 	return nil

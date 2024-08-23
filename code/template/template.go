@@ -6,6 +6,7 @@ import (
 )
 
 type codeTmplType string
+type T map[string]any
 
 const (
 	templatesDir = "code/templates/"
@@ -16,6 +17,11 @@ const (
 	TmplGoCodeImport      = codeTmplType("golang.code.import.tmpl")
 	TmplGoCodeDefDateTime = codeTmplType("golang.code.def.datetime.tmpl")
 	TmplGoCodeConfMap     = codeTmplType("golang.code.confmap.tmpl")
+
+	TmplJsonFields = codeTmplType("json.fields.tmpl")
+
+	TmplProtoCodePackage = codeTmplType("proto.code.package.tmpl")
+	TmplProtoComments    = codeTmplType("proto.comments.tmpl")
 )
 
 var (
@@ -25,12 +31,17 @@ var (
 func init() {
 	var err error
 	if globalTemplate, err = template.ParseFiles(
-		string(templatesDir+TmplGoCommentsHead),
+		string(templatesDir+TmplGoCommentsHead), // Golang
 		string(templatesDir+TmplGoCommentsSource),
 		string(templatesDir+TmplGoCodePackage),
 		string(templatesDir+TmplGoCodeImport),
 		string(templatesDir+TmplGoCodeDefDateTime),
 		string(templatesDir+TmplGoCodeConfMap),
+
+		string(templatesDir+TmplJsonFields), // Json
+
+		string(templatesDir+TmplProtoCodePackage), // Protobuf
+		string(templatesDir+TmplProtoComments),
 	); err != nil {
 		panic(err)
 	}
