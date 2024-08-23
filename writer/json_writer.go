@@ -16,12 +16,12 @@ const (
 )
 
 func getCellValByType(cell string, tp string) string {
-	if isIntType(tp) {
+	if rules.IsIntType(tp) {
 		if cell == "" {
 			return "0"
 		}
 		return cell
-	} else if isStringType(tp) {
+	} else if rules.IsStringType(tp) {
 		return fmt.Sprintf("\"%s\"", cell)
 	}
 	return fmt.Sprintf("\"%s\"", cell)
@@ -96,5 +96,5 @@ func WriteToJsonFile(headers [][]string, excelRows [][]string, filePath string, 
 	indent -= 1
 	wrf(&wr, "}\n")
 
-	return WriteToFile(genOutFilePath(outDir, sheetName, outJsonFileSuffix), []byte(wr.String()))
+	return WriteToFile(outDir, sheetName, outJsonFileSuffix, []byte(wr.String()))
 }

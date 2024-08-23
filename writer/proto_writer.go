@@ -74,5 +74,5 @@ func WriteToProtoFile(headers [][]string, filePath string, sheetName string, goP
 		return err
 	}
 
-	return WriteToFile(genOutFilePath(outDir, sheetName, outProtoFileSuffix), []byte(wr.String()))
+	return WriteToFile(outDir, sheetName, outProtoFileSuffix, []byte(wr.String()))
 }

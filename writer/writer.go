@@ -2,11 +2,9 @@ package writer
 
 import (
 	"fmt"
-	"go/format"
 	"io"
-	"io/fs"
 	"os"
-	"path"
+	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/util"
 )
@@ -14,23 +12,7 @@ import (
 const (
 	spaceStr    = "                                        " // len(spaceStr) == 40
 	tabSpaceNum = 4
-	outFilePerm = fs.FileMode(0644)
 )
-
-var (
-	DEBUG_MODE = false
-
-	intTypes    = util.NewSet("int32", "uint32")
-	stringTypes = util.NewSet("string")
-)
-
-func isIntType(tp string) bool {
-	return intTypes[tp]
-}
-
-func isStringType(tp string) bool {
-	return stringTypes[tp]
-}
 
 func indentSpace(indent int) string {
 	return spaceStr[:indent*tabSpaceNum]
@@ -47,26 +29,23 @@ func genOutFilePath(outDir string, fileName string, fileSuffix string) string {
 	return fmt.Sprintf("%s/%s%s", outDir, fileName, fileSuffix)
 }
 
-func toOutBytes(output string) ([]byte, error) {
-	var outBytes []byte
-	if DEBUG_MODE {
-		outBytes = []byte(output)
+func getPackageName(goPackage string) string {
+	splitCh := ';'
+	index := 0
+	if strings.ContainsRune(goPackage, splitCh) {
+		index = strings.IndexRune(goPackage, splitCh) + 1
 	} else {
-		var err error
-		outBytes, err = format.Source([]byte(output))
-		if err != nil {
-			util.LogError("format %s failed|err:{%+v}", outGoDefFileFullName, err)
-			return nil, err
-		}
+		index = strings.IndexRune(goPackage, '/') + 1
 	}
-	return outBytes, nil
+	return goPackage[index:]
 }
 
-func WriteToFile(filePath string, writeBytes []byte) error {
-	if err := os.MkdirAll(path.Dir(filePath), os.ModePerm); err != nil {
+func WriteToFile(outDir string, fileName string, fileSuffix string, writeBytes []byte) error {
+	if err := os.MkdirAll(outDir, os.ModePerm); err != nil {
 		util.LogError("Failed to create file: %v", err)
 		return err
 	}
+	filePath := genOutFilePath(outDir, fileName, fileSuffix)
 	outFile, err := os.Create(filePath)
 	if err != nil {
 		util.LogError("Failed to create file: %v", err)

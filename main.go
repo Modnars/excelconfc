@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"git.woa.com/modnarshen/excelconfc/rules"
 	"git.woa.com/modnarshen/excelconfc/translator"
-	"git.woa.com/modnarshen/excelconfc/writer"
 )
 
 func showErrorAndUsage(errMsg string) {
@@ -39,7 +39,7 @@ func main() {
 	}
 
 	if *debugMode {
-		writer.DEBUG_MODE = true
+		rules.DEBUG_MODE = true
 	}
 
 	translator.Translate(*filePath, *sheetName, *goPackage, *outDir)
