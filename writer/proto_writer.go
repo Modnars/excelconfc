@@ -8,7 +8,6 @@ import (
 
 	"git.woa.com/modnarshen/excelconfc/code/template"
 	"git.woa.com/modnarshen/excelconfc/rules"
-	"git.woa.com/modnarshen/excelconfc/util"
 )
 
 const (
@@ -21,7 +20,7 @@ func writeProtoFileComment(wr io.Writer, filePath string, sheetName string) erro
 		"SourceSheet": sheetName,
 	}
 	if err := template.ExecuteTemplate(wr, template.TmplProtoComments, tmplParams); err != nil {
-		return fmt.Errorf("exectue template failed|tmplName:%s", template.TmplProtoComments)
+		return fmt.Errorf("exectue template failed|tmplName:%s|err:%w", template.TmplProtoComments, err)
 	}
 	return nil
 }
@@ -32,8 +31,7 @@ func writeProtoDecl(wr io.Writer, goPackage string) error {
 		"GoPackage":   goPackage,
 	}
 	if err := template.ExecuteTemplate(wr, template.TmplProtoCodePackage, tmplParams); err != nil {
-		util.LogError("exectue template failed|tmplName:%s", template.TmplProtoCodePackage)
-		return err
+		return fmt.Errorf("exectue template failed|tmplName:%s|err:%w", template.TmplProtoCodePackage, err)
 	}
 	return nil
 }
@@ -56,16 +54,13 @@ func WriteToProtoFile(headers [][]string, filePath string, sheetName string, goP
 	var wr strings.Builder
 
 	if err := writeProtoFileComment(&wr, filePath, sheetName); err != nil {
-		util.LogError("generate proto file comment failed|fileName:%s|sheetName:%s|headers:{%+v}|err:{%+v}", path.Base(filePath), sheetName, headers, err)
-		return err
+		return fmt.Errorf("generate proto file comment failed|fileName:%s|sheetName:%s|err:%w", path.Base(filePath), sheetName, err)
 	}
 	if err := writeProtoDecl(&wr, goPackage); err != nil {
-		util.LogError("generate proto declaration failed|fileName:%s|sheetName:%s|headers:{%+v}|err:{%+v}", path.Base(filePath), sheetName, headers, err)
-		return err
+		return fmt.Errorf("generate proto declaration failed|fileName:%s|sheetName:%s|err:%w", path.Base(filePath), sheetName, err)
 	}
 	if err := writeProtoMessage(&wr, headers, sheetName); err != nil {
-		util.LogError("generate proto message failed|fileName:%s|sheetName:%s|headers:{%+v}|err:{%+v}", path.Base(filePath), sheetName, headers, err)
-		return err
+		return fmt.Errorf("generate proto message failed|fileName:%s|sheetName:%s|headers:{%+v}|err:%w", path.Base(filePath), sheetName, headers, err)
 	}
 
 	return WriteToFile(outDir, sheetName, outProtoFileSuffix, []byte(wr.String()))

@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 	"strings"
-
-	"git.woa.com/modnarshen/excelconfc/util"
 )
 
 const (
@@ -42,18 +40,16 @@ func getPackageName(goPackage string) string {
 
 func WriteToFile(outDir string, fileName string, fileSuffix string, writeBytes []byte) error {
 	if err := os.MkdirAll(outDir, os.ModePerm); err != nil {
-		util.LogError("Failed to create file: %v", err)
-		return err
+		return fmt.Errorf("failed to create output dir|err:%w", err)
 	}
 	filePath := genOutFilePath(outDir, fileName, fileSuffix)
 	outFile, err := os.Create(filePath)
 	if err != nil {
-		util.LogError("Failed to create file: %v", err)
-		return err
+		return fmt.Errorf("failed to create file|err:%w", err)
 	}
 	defer outFile.Close()
 	if _, err := outFile.Write(writeBytes); err != nil {
-		return err
+		return fmt.Errorf("write file failed|err:%w", err)
 	}
 	return nil
 }

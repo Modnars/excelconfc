@@ -1,7 +1,7 @@
 package reader
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/xuri/excelize/v2"
 
@@ -12,8 +12,7 @@ import (
 func ReadExcel(filePath string, sheetName string) ([][]string, [][]string, error) {
 	excelFile, err := excelize.OpenFile(filePath)
 	if err != nil {
-		util.LogError("excelize open file failed|filePath:%s|sheet:%s|err:{%+v}", filePath, sheetName, err)
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("excelize open file failed|filePath:%s|sheet:%s|err:%w", filePath, sheetName, err)
 	}
 
 	defer func() {
@@ -24,12 +23,10 @@ func ReadExcel(filePath string, sheetName string) ([][]string, [][]string, error
 
 	rows, err := excelFile.GetRows(sheetName)
 	if err != nil {
-		util.LogError("get excel file rows failed|filePath:%s|sheet:%s|err:{%+v}", filePath, sheetName, err)
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("get excel file rows failed|filePath:%s|sheet:%s|err:%w", filePath, sheetName, err)
 	}
 	if len(rows) < rules.ROW_HEAD_MAX {
-		util.LogError("Excel configuration content does not meet the required format|filePath:%s|sheetName:%s", filePath, sheetName)
-		return nil, nil, errors.New("invalid config")
+		return nil, nil, fmt.Errorf("invalid excel configuration format|filePath:%s|sheetName:%s", filePath, sheetName)
 	}
 	// 确保 headers 中的每一行的元素个数都与第一行（名字行）元素个数相同
 	headers := rows[:rules.ROW_HEAD_MAX]

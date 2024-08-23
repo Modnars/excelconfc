@@ -7,6 +7,7 @@ import (
 
 	"git.woa.com/modnarshen/excelconfc/rules"
 	"git.woa.com/modnarshen/excelconfc/translator"
+	"git.woa.com/modnarshen/excelconfc/util"
 )
 
 func showErrorAndUsage(errMsg string) {
@@ -42,5 +43,7 @@ func main() {
 		rules.DEBUG_MODE = true
 	}
 
-	translator.Translate(*filePath, *sheetName, *goPackage, *outDir)
+	if err := translator.Translate(*filePath, *sheetName, *goPackage, *outDir); err != nil {
+		util.LogError(err.Error())
+	}
 }
