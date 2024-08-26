@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"go/format"
 	"io"
-	"path"
 	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/code/template"
 	"git.woa.com/modnarshen/excelconfc/rules"
+	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
 )
 
@@ -73,12 +73,12 @@ func genGoConfKeyInfo(headers [][]string) (string, string) {
 		util.SnakeToPascal(headers[rules.ROW_IDX_NAME][keyIndex])
 }
 
-func writeGoFileComments(wr io.Writer, filePath string, sheetName string) error {
+func writeGoFileComments(wr io.Writer, fileName string, sheetName string) error {
 	template.ExecuteTemplate(wr, template.TmplGoCommentsHead, nil)
-	// 仅当 filePath 和 sheetName 有意义时才生成文件注释代码
-	if filePath != "" && sheetName != "" {
+	// 仅当 fileName 和 sheetName 有意义时才生成文件注释代码
+	if fileName != "" && sheetName != "" {
 		tmplParams := template.T{
-			"SourceFile":  path.Base(filePath),
+			"SourceFile":  fileName,
 			"SourceSheet": sheetName,
 		}
 		if err := template.ExecuteTemplate(wr, template.TmplGoCommentsSource, tmplParams); err != nil {
@@ -94,6 +94,55 @@ func writeGoFileComments(wr io.Writer, filePath string, sheetName string) error 
 func writeGoDeclaration(wr io.Writer, goPackage string, importPkgs ...string) error {
 	writeGoDeclPackage(wr, goPackage)
 	writeGoDeclImport(wr, importPkgs...)
+	return nil
+}
+
+func writeGoEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
+	indent := 0
+	wrf(wr, "\n")
+	for _, enumType := range enumTypes {
+		wrf(wr, "type %s int32\n", enumType.Name)
+	}
+
+	wrf(wr, "\nconst (")
+	for _, enumType := range enumTypes {
+		indent++
+		wrf(wr, "\n")
+		for _, enumVal := range enumType.EnumVals {
+			wrf(wr, "%s%s %s = %s\n", indentSpace(indent), enumVal.Name, enumType.Name, enumVal.ID)
+		}
+		indent--
+	}
+	wrf(wr, ")\n")
+
+	wrf(wr, "\nvar (")
+	for _, enumType := range enumTypes {
+		indent++
+		wrf(wr, "\n%s%s_name = map[int32]string{\n", indentSpace(indent), enumType.Name)
+		indent++
+		for _, enumVal := range enumType.EnumVals {
+			wrf(wr, "%s%s: \"%s\",\n", indentSpace(indent), enumVal.ID, enumVal.Name)
+		}
+		indent--
+		wrf(wr, "%s}\n", indentSpace(indent))
+		wrf(wr, "%s%s_value = map[string]int32{\n", indentSpace(indent), enumType.Name)
+		indent++
+		for _, enumVal := range enumType.EnumVals {
+			wrf(wr, "%s\"%s\": %s,\n", indentSpace(indent), enumVal.Name, enumVal.ID)
+		}
+		indent--
+		wrf(wr, "%s}\n", indentSpace(indent))
+		indent--
+	}
+	wrf(wr, ")\n")
+
+	for _, enumType := range enumTypes {
+		wrf(wr, "\nfunc(x %s) String() string {\n", enumType.Name)
+		indent++
+		wrf(wr, "return %s_name[int32(x)]\n", enumType.Name)
+		indent--
+		wrf(wr, "}\n")
+	}
 	return nil
 }
 
@@ -145,34 +194,37 @@ func outputGoDefFile(goPackage string, outDir string) error {
 	return WriteToFile(outDir, "excelconf.def", outGoFileSuffix, outBytes)
 }
 
-func outputGoFile(headers [][]string, filePath string, sheetName string, goPackage string, outDir string) error {
+func outputGoFile(outData types.OutDataHolder, goPackage string, outDir string) error {
 	var wr strings.Builder
 
-	if err := writeGoFileComments(&wr, filePath, sheetName); err != nil {
-		return fmt.Errorf("generate Go file comments failed|fileName:%s|sheetName:%s -> %w", path.Base(filePath), sheetName, err)
+	if err := writeGoFileComments(&wr, outData.GetFileName(), outData.GetSheetName()); err != nil {
+		return fmt.Errorf("generate Go file comments failed|file:%s|sheet:%s -> %w", outData.GetFileName(), outData.GetSheetName(), err)
 	}
 	if err := writeGoDeclaration(&wr, goPackage, "encoding/json", "os"); err != nil {
-		return fmt.Errorf("generate Go declaration code failed|fileName:%s|sheetName:%s -> %w", path.Base(filePath), sheetName, err)
+		return fmt.Errorf("generate Go declaration code failed|file:%s|sheet:%s -> %w", outData.GetFileName(), outData.GetSheetName(), err)
 	}
-	if err := writeGoConfStruct(&wr, headers, sheetName); err != nil {
-		return fmt.Errorf("generate Conf Go code failed|fileName:%s|sheetName:%s|headers:{%+v} -> %w", path.Base(filePath), sheetName, headers, err)
+	if err := writeGoEnum(&wr, outData.GetEnumTypes()); err != nil {
+		return fmt.Errorf("generate Go enum code failed|file:%s|sheet:%s|enumTypes:%v -> %w", outData.GetFileName(), outData.GetSheetName(), outData.GetEnumTypes(), err)
 	}
-	if err := writeConfMapStruct(&wr, headers, sheetName); err != nil {
-		return fmt.Errorf("generate ConfMap Go code failed|fileName:%s|sheetName:%s|headers:{%+v} -> %w", path.Base(filePath), sheetName, headers, err)
+	if err := writeGoConfStruct(&wr, outData.GetHeaders(), outData.GetSheetName()); err != nil {
+		return fmt.Errorf("generate Conf Go code failed|file:%s|sheet:%s|headers:{%+v} -> %w", outData.GetFileName(), outData.GetSheetName(), outData.GetHeaders(), err)
+	}
+	if err := writeConfMapStruct(&wr, outData.GetHeaders(), outData.GetSheetName()); err != nil {
+		return fmt.Errorf("generate ConfMap Go code failed|file:%s|sheet:%s|headers:{%+v} -> %w", outData.GetFileName(), outData.GetSheetName(), outData.GetHeaders(), err)
 	}
 
 	outBytes, err := toOutBytes(wr.String())
 	if err != nil {
 		return fmt.Errorf("to output bytes failed -> %w", err)
 	}
-	return WriteToFile(outDir, sheetName, outGoFileSuffix, outBytes)
+	return WriteToFile(outDir, outData.GetSheetName(), outGoFileSuffix, outBytes)
 }
 
-func WriteToGoFile(headers [][]string, filePath string, sheetName string, goPackage string, outDir string) error {
+func WriteToGoFile(outData types.OutDataHolder, goPackage string, outDir string) error {
 	if err := outputGoDefFile(goPackage, outDir); err != nil {
 		return fmt.Errorf("generate go def file failed -> %w", err)
 	}
-	if err := outputGoFile(headers, filePath, sheetName, goPackage, outDir); err != nil {
+	if err := outputGoFile(outData, goPackage, outDir); err != nil {
 		return fmt.Errorf("generate go code file failed -> %w", err)
 	}
 	return nil

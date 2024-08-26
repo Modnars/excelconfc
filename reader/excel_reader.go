@@ -93,7 +93,7 @@ func ReadExcel(filePath string, sheetName string, enumSheetName string) (types.O
 	if err != nil {
 		return nil, fmt.Errorf("read data sheet failed|file:%s|sheet:%s -> %w", filepath.Base(filePath), sheetName, err)
 	}
-	enumData, enumMap, err := readExcelEnumSheet(excelFile, enumSheetName)
+	enumTypes, enumValMap, err := readExcelEnumSheet(excelFile, enumSheetName)
 	if err != nil {
 		return nil, fmt.Errorf("read enum sheet failed|file:%s|sheet:%s -> %w", filepath.Base(filePath), sheetName, err)
 	}
@@ -102,8 +102,8 @@ func ReadExcel(filePath string, sheetName string, enumSheetName string) (types.O
 			SheetName:   sheetName,
 			DataHeaders: dataHeaders,
 			DataRows:    dataRows,
-			EnumData:    enumData,
-			EnumMap:     enumMap},
+			EnumTypes:   enumTypes,
+			EnumValMap:  enumValMap},
 		nil
 }
 

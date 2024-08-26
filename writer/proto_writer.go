@@ -8,6 +8,7 @@ import (
 
 	"git.woa.com/modnarshen/excelconfc/code/template"
 	"git.woa.com/modnarshen/excelconfc/rules"
+	"git.woa.com/modnarshen/excelconfc/types"
 )
 
 const (
@@ -50,18 +51,35 @@ func writeProtoMessage(wr io.Writer, headers [][]string, sheetName string) error
 	return nil
 }
 
-func WriteToProtoFile(headers [][]string, filePath string, sheetName string, goPackage string, outDir string) error {
+func writeProtoEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
+	indent := 0
+	for _, enumType := range enumTypes {
+		wrf(wr, "\nenum %s {\n", enumType.Name)
+		indent++
+		for _, enumVal := range enumType.EnumVals {
+			wrf(wr, "%s%s = %s;\n", indentSpace(indent), enumVal.Name, enumVal.ID)
+		}
+		indent--
+		wrf(wr, "}\n")
+	}
+	return nil
+}
+
+func WriteToProtoFile(outData types.OutDataHolder, goPackage string, outDir string) error {
 	var wr strings.Builder
 
-	if err := writeProtoFileComment(&wr, filePath, sheetName); err != nil {
-		return fmt.Errorf("generate proto file comment failed|fileName:%s|sheetName:%s -> %w", path.Base(filePath), sheetName, err)
+	if err := writeProtoFileComment(&wr, outData.GetFileName(), outData.GetSheetName()); err != nil {
+		return fmt.Errorf("generate proto file comment failed|file:%s|sheet:%s -> %w", outData.GetFileName(), outData.GetSheetName(), err)
 	}
 	if err := writeProtoDecl(&wr, goPackage); err != nil {
-		return fmt.Errorf("generate proto declaration failed|fileName:%s|sheetName:%s -> %w", path.Base(filePath), sheetName, err)
+		return fmt.Errorf("generate proto declaration failed|file:%s|sheet:%s -> %w", outData.GetFileName(), outData.GetSheetName(), err)
 	}
-	if err := writeProtoMessage(&wr, headers, sheetName); err != nil {
-		return fmt.Errorf("generate proto message failed|fileName:%s|sheetName:%s|headers:{%+v} -> %w", path.Base(filePath), sheetName, headers, err)
+	if err := writeProtoMessage(&wr, outData.GetHeaders(), outData.GetSheetName()); err != nil {
+		return fmt.Errorf("generate proto message failed|file:%s|sheet:%s|headers:{%+v} -> %w", outData.GetFileName(), outData.GetSheetName(), outData.GetHeaders(), err)
+	}
+	if err := writeProtoEnum(&wr, outData.GetEnumTypes()); err != nil {
+		return fmt.Errorf("generate proto message failed|file:%s|sheet:%s|enumTypes:{%+v} -> %w", outData.GetFileName(), outData.GetSheetName(), outData.GetEnumTypes(), err)
 	}
 
-	return WriteToFile(outDir, sheetName, outProtoFileSuffix, []byte(wr.String()))
+	return WriteToFile(outDir, outData.GetSheetName(), outProtoFileSuffix, []byte(wr.String()))
 }

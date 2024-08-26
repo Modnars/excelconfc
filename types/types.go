@@ -1,5 +1,7 @@
 package types
 
+import "fmt"
+
 type FieldSt struct {
 	Name       string     // 字段名（解析后）
 	Type       string     // 字段类型（解析后，可供解析时直接取用的类型）
@@ -27,6 +29,14 @@ type OutDataHolder interface {
 	GetSheetName() string
 	GetHeaders() [][]string
 	GetData() [][]string
-	GetEnumData() []*EnumTypeSt
-	GetEnumMap() map[string]*EnumValSt
+	GetEnumTypes() []*EnumTypeSt
+	GetEnumValMap() map[string]*EnumValSt
+}
+
+func (ev *EnumValSt) String() string {
+	return fmt.Sprintf("%+v", *ev)
+}
+
+func (et *EnumTypeSt) String() string {
+	return fmt.Sprintf("%+v", *et)
 }

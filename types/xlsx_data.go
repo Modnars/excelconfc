@@ -5,8 +5,8 @@ type XlsxDataHolder struct {
 	SheetName   string
 	DataHeaders [][]string
 	DataRows    [][]string
-	EnumData    []*EnumTypeSt
-	EnumMap     map[string]*EnumValSt
+	EnumTypes   []*EnumTypeSt
+	EnumValMap  map[string]*EnumValSt
 }
 
 func (xdh *XlsxDataHolder) GetFileName() string {
@@ -25,12 +25,12 @@ func (xdh *XlsxDataHolder) GetData() [][]string {
 	return xdh.DataRows
 }
 
-func (xdh *XlsxDataHolder) GetEnumData() []*EnumTypeSt {
-	return xdh.EnumData
+func (xdh *XlsxDataHolder) GetEnumTypes() []*EnumTypeSt {
+	return xdh.EnumTypes
 }
 
-func (xdh *XlsxDataHolder) GetEnumMap() map[string]*EnumValSt {
-	return xdh.EnumMap
+func (xdh *XlsxDataHolder) GetEnumValMap() map[string]*EnumValSt {
+	return xdh.EnumValMap
 }
 
 var _ OutDataHolder = (*XlsxDataHolder)(nil)
