@@ -27,7 +27,7 @@ excelize 的 `func (f *excelize.File) GetRows(sheet string, opts ...excelize.Opt
 
 这几行配置作为表头信息配置（用于指示从第 5 行开始的数据以什么样的形式来进行解析），在解析数据时往往需要直接访问来确定表格内数据如何“变形”，比如同样是字符串，如果第二行标识了 `D`，就代表表格数据是一个时间（D，DateTime），如果没有标识，就单纯代表单元格数据是一个字符串，那么运行时读取 `headers[1][col_idx]` 就一定会得到一个越界访问的 panic！因此，对于此类需要支持“对齐项访问”的场景，需要对 API 进行一个封装修饰来满足实际的业务需求，因此在 `reader.readDataSheet` 中对表头 headers 进行了填充处理，使得表头的每一行的列数都与表头第一行的列数保持一致。
 
-而对于下方的配置数据而言，如果通过正常的 range 迭代遍历得到的数据，就已经足够支持数据的生成，那么此时就不对下方的配置数据进行确保数据列数对齐的填充。
+而对于下方的配置数据而言，通过正常的 range 迭代遍历得到的数据，就已经足够支持数据的生成，那么此时就不必对下方的配置数据进行填充来确保数据列数的对齐。
 
 因此对于通过 `reader.readDataSheet` 获取得到的数据，往往可以这样去想象它们的样子：
 
@@ -45,7 +45,7 @@ excelize 的 `func (f *excelize.File) GetRows(sheet string, opts ...excelize.Opt
 
 - 枚举定义配置表（EnumSheet）
 
-按照 `{EnumType}EnumLabel` 的方式来定义一个枚举类，用 `{EnumLabel}EnumValueLabel` 开始的行来定义此枚举类中具体的枚举值。
+按照 `{EnumType}EnumLabel` 的方式来定义一个枚举类，用 `[EnumLabel]EnumValueLabel` 开始的行来定义此枚举类中具体的枚举值。
 
 | ... | ... | ... | ... |
 | :-: | :-: | :-: | :-: |
@@ -63,10 +63,9 @@ excelize 的 `func (f *excelize.File) GetRows(sheet string, opts ...excelize.Opt
 | :-: | :-: | :-: | :-: |
 | {ActType}活动类型 | | | |
 | [活动类型]签到活动 | 1 | ACT\_TYPE\_CHECK\_IN |
-| [活动类型]登录活动 | 1 | ACT\_TYPE\_LOG\_IN |
+| [活动类型]登录活动 | 2 | ACT\_TYPE\_LOG\_IN |
 | | | | |
 | {TaskType}任务类型 | | | |
 | Label | ID | Name | NOTES |
 | [任务类型]登录 | 1 | TASK\_TYPE\_LOG\_IN | 登录任务 |
-| [任务类型]等级 | 1 | TASK\_TYPE\_LEVEL | 等级满足指定条件 |
-
+| [任务类型]等级 | 2 | TASK\_TYPE\_LEVEL | 等级满足指定条件 |

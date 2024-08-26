@@ -27,7 +27,7 @@ func toOutBytes(output string) ([]byte, error) {
 		var err error
 		outBytes, err = format.Source([]byte(output))
 		if err != nil {
-			return nil, fmt.Errorf("format %s failed|err:%w", outGoDefFileFullName, err)
+			return nil, fmt.Errorf("format %s failed -> %w", outGoDefFileFullName, err)
 		}
 	}
 	return outBytes, nil
@@ -82,7 +82,7 @@ func writeGoFileComments(wr io.Writer, filePath string, sheetName string) error 
 			"SourceSheet": sheetName,
 		}
 		if err := template.ExecuteTemplate(wr, template.TmplGoCommentsSource, tmplParams); err != nil {
-			return fmt.Errorf("exectue template failed|tmplName:%s|err:%w", template.TmplGoCommentsSource, err)
+			return fmt.Errorf("exectue template failed|tmplName:%s -> %w", template.TmplGoCommentsSource, err)
 		}
 	} else {
 		// 此处显式添加换行，这是因为 Title 本身是不会有换行的，以此来保证注释代码的连贯性。
@@ -122,7 +122,7 @@ func writeConfMapStruct(wr io.Writer, headers [][]string, sheetName string) erro
 	}
 
 	if err := template.ExecuteTemplate(wr, template.TmplGoCodeConfMap, tmplParams); err != nil {
-		return fmt.Errorf("exectue template failed|tmplName:%s|err:%w", template.TmplGoCodeConfMap, err)
+		return fmt.Errorf("exectue template failed|tmplName:%s -> %w", template.TmplGoCodeConfMap, err)
 	}
 	return nil
 }
@@ -130,17 +130,17 @@ func writeConfMapStruct(wr io.Writer, headers [][]string, sheetName string) erro
 func outputGoDefFile(goPackage string, outDir string) error {
 	var wr strings.Builder
 	if err := writeGoFileComments(&wr, "", ""); err != nil {
-		return fmt.Errorf("write Go file comments failed|fineName:%s|err:%w", outGoDefFileName, err)
+		return fmt.Errorf("write Go file comments failed|fineName:%s -> %w", outGoDefFileName, err)
 	}
 	if err := writeGoDeclaration(&wr, goPackage, "encoding/json", "time"); err != nil {
-		return fmt.Errorf("write Go declaration failed|err:%w", err)
+		return fmt.Errorf("write Go declaration failed -> %w", err)
 	}
 	if err := template.ExecuteTemplate(&wr, template.TmplGoCodeDefDateTime, nil); err != nil {
-		return fmt.Errorf("exectue template failed|tmplName:%s|err:%w", template.TmplGoCodeDefDateTime, err)
+		return fmt.Errorf("exectue template failed|tmplName:%s -> %w", template.TmplGoCodeDefDateTime, err)
 	}
 	outBytes, err := toOutBytes(wr.String())
 	if err != nil {
-		return fmt.Errorf("to output bytes failed|err:%w", err)
+		return fmt.Errorf("to output bytes failed -> %w", err)
 	}
 	return WriteToFile(outDir, "excelconf.def", outGoFileSuffix, outBytes)
 }
@@ -149,35 +149,31 @@ func outputGoFile(headers [][]string, filePath string, sheetName string, goPacka
 	var wr strings.Builder
 
 	if err := writeGoFileComments(&wr, filePath, sheetName); err != nil {
-		return fmt.Errorf("generate Go file comments failed|fileName:%s|sheetName:%s|err:%w",
-			path.Base(filePath), sheetName, err)
+		return fmt.Errorf("generate Go file comments failed|fileName:%s|sheetName:%s -> %w", path.Base(filePath), sheetName, err)
 	}
 	if err := writeGoDeclaration(&wr, goPackage, "encoding/json", "os"); err != nil {
-		return fmt.Errorf("generate Go declaration code failed|fileName:%s|sheetName:%s|err:%w",
-			path.Base(filePath), sheetName, err)
+		return fmt.Errorf("generate Go declaration code failed|fileName:%s|sheetName:%s -> %w", path.Base(filePath), sheetName, err)
 	}
 	if err := writeGoConfStruct(&wr, headers, sheetName); err != nil {
-		return fmt.Errorf("generate Conf Go code failed|fileName:%s|sheetName:%s|headers:{%+v}|err:%w",
-			path.Base(filePath), sheetName, headers, err)
+		return fmt.Errorf("generate Conf Go code failed|fileName:%s|sheetName:%s|headers:{%+v} -> %w", path.Base(filePath), sheetName, headers, err)
 	}
 	if err := writeConfMapStruct(&wr, headers, sheetName); err != nil {
-		return fmt.Errorf("generate ConfMap Go code failed|fileName:%s|sheetName:%s|headers:{%+v}|err:%w",
-			path.Base(filePath), sheetName, headers, err)
+		return fmt.Errorf("generate ConfMap Go code failed|fileName:%s|sheetName:%s|headers:{%+v} -> %w", path.Base(filePath), sheetName, headers, err)
 	}
 
 	outBytes, err := toOutBytes(wr.String())
 	if err != nil {
-		return fmt.Errorf("to output bytes failed|err:%w", err)
+		return fmt.Errorf("to output bytes failed -> %w", err)
 	}
 	return WriteToFile(outDir, sheetName, outGoFileSuffix, outBytes)
 }
 
 func WriteToGoFile(headers [][]string, filePath string, sheetName string, goPackage string, outDir string) error {
 	if err := outputGoDefFile(goPackage, outDir); err != nil {
-		return fmt.Errorf("generate go def file failed|err:%w", err)
+		return fmt.Errorf("generate go def file failed -> %w", err)
 	}
 	if err := outputGoFile(headers, filePath, sheetName, goPackage, outDir); err != nil {
-		return fmt.Errorf("generate go code file failed|err:%w", err)
+		return fmt.Errorf("generate go code file failed -> %w", err)
 	}
 	return nil
 }

@@ -19,8 +19,9 @@ func main() {
 	filePath := flag.String("excel", "", "target Excel config file path")
 	sheetName := flag.String("sheet", "", "target Excel config sheet")
 	goPackage := flag.String("go_package", "excelconf", "target protobuf option go_package value")
-	debugMode := flag.Bool("debug", false, "DEBUG mode allows invalid output")
 	outDir := flag.String("outdir", ".", "output directory")
+	flag.BoolVar(&rules.DEBUG_MODE, "debug", false, "DEBUG mode allows invalid output")
+	flag.BoolVar(&util.COLORFUL_LOG, "ncl", true, "`ncl` makes no colorful log output")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n", os.Args[0])
@@ -28,7 +29,9 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	flag.Parse()
+	if !flag.Parsed() {
+		flag.Parse()
+	}
 
 	if *filePath == "" {
 		showErrorAndUsage("Error: -excel is a required parameter")
@@ -39,11 +42,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *debugMode {
-		rules.DEBUG_MODE = true
-	}
-
-	if err := translator.Translate(*filePath, *sheetName, *goPackage, *outDir); err != nil {
+	if err := translator.Translate(*filePath, *sheetName, "ENUM_DESC", *goPackage, *outDir); err != nil {
 		util.LogError(err.Error())
 	}
 }

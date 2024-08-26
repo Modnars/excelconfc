@@ -77,12 +77,12 @@ func WriteToJsonFile(headers [][]string, excelRows [][]string, filePath string, 
 		"OutDir":      outDir,
 	}
 	if err := template.ExecuteTemplate(&wr, template.TmplJsonFields, tmplParams); err != nil {
-		return fmt.Errorf("exectue template failed|tmplName:%s|err:%w", template.TmplJsonFields, err)
+		return fmt.Errorf("exectue template failed|tmplName:%s -> %w", template.TmplJsonFields, err)
 	}
 
 	// 传入一个 isLastElem 的参数来指示写入的内容是否是最后一个元素。如果是，就省略最后的 `,`，否则添加上 `,`
 	if err := writeJsonRowsData(&wr, headers, excelRows, indent, true); err != nil {
-		return fmt.Errorf("parse excel rows to JSON failed|file:%s|sheet:%s|err:%w", filePath, sheetName, err)
+		return fmt.Errorf("parse excel rows to JSON failed|file:%s|sheet:%s -> %w", filePath, sheetName, err)
 	}
 	indent -= 1
 	wrf(&wr, "}\n")
