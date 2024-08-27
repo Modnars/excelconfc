@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	COLORFUL_LOG bool
+	NO_COLORFUL_LOG bool
 
 	prefixInfo  = "[INFO] "
 	prefixError = "[ERROR] "
@@ -15,17 +15,17 @@ var (
 )
 
 func infoLogPrefix() string {
-	if COLORFUL_LOG {
-		return colorfulPrefixInfo
+	if NO_COLORFUL_LOG {
+		return prefixInfo
 	}
-	return prefixInfo
+	return colorfulPrefixInfo
 }
 
 func errorLogPrefix() string {
-	if COLORFUL_LOG {
-		return colorfulPrefixError
+	if NO_COLORFUL_LOG {
+		return prefixError
 	}
-	return prefixError
+	return colorfulPrefixError
 }
 
 func LogInfo(format string, args ...any) {

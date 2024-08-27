@@ -21,7 +21,7 @@ func main() {
 	goPackage := flag.String("go_package", "excelconf", "target protobuf option go_package value")
 	outDir := flag.String("outdir", ".", "output directory")
 	flag.BoolVar(&rules.DEBUG_MODE, "debug", false, "DEBUG mode allows invalid output")
-	flag.BoolVar(&util.COLORFUL_LOG, "ncl", true, "`ncl` makes no colorful log output")
+	flag.BoolVar(&util.NO_COLORFUL_LOG, "ncl", false, "`ncl` makes no colorful log output")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n", os.Args[0])

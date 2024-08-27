@@ -18,7 +18,7 @@ func Translate(filePath string, sheetName string, enumSheetName string, goPackag
 	if err := writer.WriteToGoFile(xlsxData, goPackage, outDir); err != nil {
 		return fmt.Errorf("WriteToGo failed|filePath:%s|sheet:%s|outDir:%s -> %w", filePath, sheetName, outDir, err)
 	}
-	if err := writer.WriteToJsonFile(xlsxData.GetHeaders(), xlsxData.GetData(), filePath, sheetName, outDir); err != nil {
+	if err := writer.WriteToJsonFile(xlsxData, outDir); err != nil {
 		return fmt.Errorf("WriteToJson failed|filePath:%s|sheet:%s|outDir:%s -> %w", filePath, sheetName, outDir, err)
 	}
 	return nil

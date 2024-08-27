@@ -74,11 +74,11 @@ func WriteToProtoFile(outData types.OutDataHolder, goPackage string, outDir stri
 	if err := writeProtoDecl(&wr, goPackage); err != nil {
 		return fmt.Errorf("generate proto declaration failed|file:%s|sheet:%s -> %w", outData.GetFileName(), outData.GetSheetName(), err)
 	}
-	if err := writeProtoMessage(&wr, outData.GetHeaders(), outData.GetSheetName()); err != nil {
-		return fmt.Errorf("generate proto message failed|file:%s|sheet:%s|headers:{%+v} -> %w", outData.GetFileName(), outData.GetSheetName(), outData.GetHeaders(), err)
-	}
 	if err := writeProtoEnum(&wr, outData.GetEnumTypes()); err != nil {
 		return fmt.Errorf("generate proto message failed|file:%s|sheet:%s|enumTypes:{%+v} -> %w", outData.GetFileName(), outData.GetSheetName(), outData.GetEnumTypes(), err)
+	}
+	if err := writeProtoMessage(&wr, outData.GetHeaders(), outData.GetSheetName()); err != nil {
+		return fmt.Errorf("generate proto message failed|file:%s|sheet:%s|headers:{%+v} -> %w", outData.GetFileName(), outData.GetSheetName(), outData.GetHeaders(), err)
 	}
 
 	return WriteToFile(outDir, outData.GetSheetName(), outProtoFileSuffix, []byte(wr.String()))

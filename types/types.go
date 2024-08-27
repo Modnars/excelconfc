@@ -2,6 +2,9 @@ package types
 
 import "fmt"
 
+// Enum Value Map
+type EVM map[string]*EnumValSt
+
 type FieldSt struct {
 	Name       string     // 字段名（解析后）
 	Type       string     // 字段类型（解析后，可供解析时直接取用的类型）
@@ -30,7 +33,7 @@ type OutDataHolder interface {
 	GetHeaders() [][]string
 	GetData() [][]string
 	GetEnumTypes() []*EnumTypeSt
-	GetEnumValMap() map[string]*EnumValSt
+	GetEnumValMap() EVM
 }
 
 func (ev *EnumValSt) String() string {
