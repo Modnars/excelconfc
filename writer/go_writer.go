@@ -14,9 +14,8 @@ import (
 
 const (
 	// Output file suffix `.ec.go` means Excel Config Go code.
-	outGoFileSuffix      = ".ec.go"
-	outGoDefFileName     = "excelconf.def"
-	outGoDefFileFullName = outGoDefFileName + outGoFileSuffix
+	outGoFileSuffix  = ".ec.go"
+	outGoDefFileName = "excelconf.def"
 )
 
 func toOutBytes(output string) ([]byte, error) {
@@ -27,7 +26,7 @@ func toOutBytes(output string) ([]byte, error) {
 		var err error
 		outBytes, err = format.Source([]byte(output))
 		if err != nil {
-			return nil, fmt.Errorf("format %s failed -> %w", outGoDefFileFullName, err)
+			return nil, fmt.Errorf("format code failed -> %w", err)
 		}
 	}
 	return outBytes, nil
@@ -191,10 +190,10 @@ func outputGoDefFile(goPackage string, outDir string) error {
 	if err != nil {
 		return fmt.Errorf("to output bytes failed -> %w", err)
 	}
-	return WriteToFile(outDir, "excelconf.def", outGoFileSuffix, outBytes)
+	return WriteToFile(outDir, outGoDefFileName, outGoFileSuffix, outBytes)
 }
 
-func outputGoFile(outData types.OutDataHolder, goPackage string, outDir string) error {
+func outputGoFile(outData types.DataHolder, goPackage string, outDir string) error {
 	var wr strings.Builder
 
 	if err := writeGoFileComments(&wr, outData.GetFileName(), outData.GetSheetName()); err != nil {
@@ -220,7 +219,7 @@ func outputGoFile(outData types.OutDataHolder, goPackage string, outDir string) 
 	return WriteToFile(outDir, outData.GetSheetName(), outGoFileSuffix, outBytes)
 }
 
-func WriteToGoFile(outData types.OutDataHolder, goPackage string, outDir string) error {
+func WriteToGoFile(outData types.DataHolder, goPackage string, outDir string) error {
 	if err := outputGoDefFile(goPackage, outDir); err != nil {
 		return fmt.Errorf("generate go def file failed -> %w", err)
 	}

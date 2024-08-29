@@ -33,4 +33,4 @@ func (xdh *XlsxDataHolder) GetEnumValMap() EVM {
 	return xdh.EnumValMap
 }
 
-var _ OutDataHolder = (*XlsxDataHolder)(nil)
+var _ DataHolder = (*XlsxDataHolder)(nil)

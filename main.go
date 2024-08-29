@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"git.woa.com/modnarshen/excelconfc/compiler"
 	"git.woa.com/modnarshen/excelconfc/rules"
-	"git.woa.com/modnarshen/excelconfc/translator"
 	"git.woa.com/modnarshen/excelconfc/util"
 )
 
@@ -42,7 +42,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := translator.Translate(*filePath, *sheetName, "ENUM_DESC", *goPackage, *outDir); err != nil {
+	if err := compiler.Compile(*filePath, *sheetName, "ENUM_DESC", *goPackage, *outDir); err != nil {
 		util.LogError(err.Error())
 	}
 }

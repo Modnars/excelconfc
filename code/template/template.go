@@ -1,6 +1,7 @@
 package template
 
 import (
+	"embed"
 	"io"
 	"text/template"
 )
@@ -9,8 +10,6 @@ type codeTmplType string
 type T map[string]any
 
 const (
-	templatesDir = "code/templates/"
-
 	TmplGoCommentsHead    = codeTmplType("golang.comments.head.tmpl")
 	TmplGoCommentsSource  = codeTmplType("golang.comments.source.tmpl")
 	TmplGoCodePackage     = codeTmplType("golang.code.package.tmpl")
@@ -25,24 +24,14 @@ const (
 )
 
 var (
+	//go:embed templates/*.tmpl
+	embedFS        embed.FS
 	globalTemplate *template.Template
 )
 
 func init() {
 	var err error
-	if globalTemplate, err = template.ParseFiles(
-		string(templatesDir+TmplGoCommentsHead), // Golang
-		string(templatesDir+TmplGoCommentsSource),
-		string(templatesDir+TmplGoCodePackage),
-		string(templatesDir+TmplGoCodeImport),
-		string(templatesDir+TmplGoCodeDefDateTime),
-		string(templatesDir+TmplGoCodeConfMap),
-
-		string(templatesDir+TmplJsonFields), // Json
-
-		string(templatesDir+TmplProtoCodePackage), // Protobuf
-		string(templatesDir+TmplProtoComments),
-	); err != nil {
+	if globalTemplate, err = template.ParseFS(embedFS, "templates/*.tmpl"); err != nil {
 		panic(err)
 	}
 }

@@ -5,12 +5,16 @@ import (
 	"io"
 	"os"
 	"strings"
+
+	"git.woa.com/modnarshen/excelconfc/translator"
 )
 
 const (
 	spaceStr    = "                                        " // len(spaceStr) == 40
 	tabSpaceNum = 4
 )
+
+type Field = *translator.Node
 
 func indentSpace(indent int) string {
 	return spaceStr[:indent*tabSpaceNum]

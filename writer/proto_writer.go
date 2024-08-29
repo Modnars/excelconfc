@@ -65,7 +65,7 @@ func writeProtoEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 	return nil
 }
 
-func WriteToProtoFile(outData types.OutDataHolder, goPackage string, outDir string) error {
+func WriteToProtoFile(outData types.DataHolder, goPackage string, outDir string) error {
 	var wr strings.Builder
 
 	if err := writeProtoFileComment(&wr, outData.GetFileName(), outData.GetSheetName()); err != nil {

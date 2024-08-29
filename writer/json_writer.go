@@ -15,12 +15,12 @@ const (
 )
 
 func getCellVal(cell string, tp string, desc string, evm types.EVM) string {
-	if rules.IsIntType(tp) {
+	if types.IsIntType(tp) {
 		if cell == "" {
 			return "0"
 		}
 		return cell
-	} else if rules.IsStringType(tp) {
+	} else if types.IsStringType(tp) {
 		return fmt.Sprintf("\"%s\"", cell)
 	} else {
 		if desc == "E" {
@@ -33,7 +33,7 @@ func getCellVal(cell string, tp string, desc string, evm types.EVM) string {
 	return fmt.Sprintf("\"%s\"", cell)
 }
 
-func writeJsonRowsData(wr io.Writer, outData types.OutDataHolder, indent int, isLastElem bool) error {
+func writeJsonRowsData(wr io.Writer, outData types.DataHolder, indent int, isLastElem bool) error {
 	headers := outData.GetHeaders()
 	excelRows := outData.GetData()
 	maxColNum := len(headers[rules.ROW_IDX_NAME])
@@ -73,7 +73,7 @@ func writeJsonRowsData(wr io.Writer, outData types.OutDataHolder, indent int, is
 	return nil
 }
 
-func WriteToJsonFile(outData types.OutDataHolder, outDir string) error {
+func WriteToJsonFile(outData types.DataHolder, outDir string) error {
 	indent := 0
 	var wr strings.Builder
 
