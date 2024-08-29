@@ -9,7 +9,7 @@ import (
 
 type Field = translator.Node
 
-func CellVal(field *Field, cell string) string {
+func CellVal(field *Field, cell string, evm types.EVM) string {
 	switch field.Type {
 	case types.TOK_TYPE_STRING, types.TOK_PARSED_TYPE_DATETIME:
 		return fmt.Sprintf(`"%s"`, cell)
@@ -27,6 +27,8 @@ func CellVal(field *Field, cell string) string {
 		return cell
 	case types.TOK_TYPE_UINT64:
 		return cell
+	case "Enum":
+		return evm[cell].ID
 	}
 	return cell
 }

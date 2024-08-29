@@ -7,6 +7,7 @@ import (
 
 	"git.woa.com/modnarshen/excelconfc/code/template"
 	"git.woa.com/modnarshen/excelconfc/translator"
+	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
 	"git.woa.com/modnarshen/excelconfc/writer"
 )
@@ -15,42 +16,7 @@ const (
 	outFileSuffix = ".ec.json"
 )
 
-func writeRowData(wr io.Writer, nodes []*translator.Node, rowData []string, indent int, isLastElem bool) error {
-	fmt.Fprintf(wr, "%s{\n", util.IndentSpace(indent))
-	indent++
-	for idx, node := range nodes {
-		if node.ColIdx >= len(rowData) {
-			break
-		}
-		comma := ","
-		if idx == len(nodes)-1 {
-			comma = ""
-		}
-		if node.IsVectorDecl() {
-			if len(node.SubNodes) <= 0 {
-				fmt.Fprintf(wr, "%s\"%s\": [ ]\n%s", util.IndentSpace(indent), node.Name, comma)
-			} else {
-				fmt.Fprintf(wr, "%s\"%s\": [\n", util.IndentSpace(indent), node.Name)
-				writeRowData(wr, node.SubNodes, rowData, indent+1, node.ColIdx >= len(rowData)-1)
-				fmt.Fprintf(wr, "%s]%s\n", util.IndentSpace(indent), comma)
-				continue
-			}
-		}
-		fmt.Fprintf(wr, "%s\"%s\": %s%s\n", util.IndentSpace(indent), node.Name, CellVal(node, rowData[node.ColIdx]), comma)
-		if len(node.SubNodes) > 0 {
-			writeRowData(wr, node.SubNodes, rowData, indent+1, node.ColIdx >= len(rowData)-1)
-		}
-	}
-	indent--
-	comma := ","
-	if isLastElem {
-		comma = ""
-	}
-	fmt.Fprintf(wr, "%s}%s\n", util.IndentSpace(indent), comma)
-	return nil
-}
-
-func writeFieldData1(wr io.Writer, field *Field, vals []string, indent int, isLastElem bool) bool {
+func writeRowData(wr io.Writer, field *Field, vals []string, indent int, isLastElem bool, evm types.EVM) bool {
 	if field.ColIdx >= len(vals) {
 		return true
 	}
@@ -64,13 +30,13 @@ func writeFieldData1(wr io.Writer, field *Field, vals []string, indent int, isLa
 		}
 	} else {
 		if field.ColIdx < len(vals) {
-			fmt.Fprintf(wr, "%s\"%s\": %s", util.IndentSpace(indent), field.Name, CellVal(field, vals[field.ColIdx]))
+			fmt.Fprintf(wr, "%s\"%s\": %s", util.IndentSpace(indent), field.Name, CellVal(field, vals[field.ColIdx], evm))
 		}
 	}
 
 	right := false
 	for idx, subField := range field.SubNodes {
-		right = right || writeFieldData1(wr, subField, vals, indent+1, idx == len(field.SubNodes)-1)
+		right = right || writeRowData(wr, subField, vals, indent+1, idx == len(field.SubNodes)-1, evm)
 	}
 
 	// 不加 ',' 的情况有三种：
@@ -93,30 +59,13 @@ func writeFieldData1(wr io.Writer, field *Field, vals []string, indent int, isLa
 	return field.ColIdx == len(vals)-1
 }
 
-func writeDrive(wr io.Writer, data *translator.DataHolder, indent int, isLastElem bool) error {
-	fmt.Fprintf(wr, "%s\"data\": [\n", util.IndentSpace(indent))
-	indent++
-	for idx, rowData := range data.GetData() {
-		writeFieldData1(wr, data.ASTRoot, rowData, indent, idx == len(data.GetData())-1)
-		if idx != len(data.GetData())-1 {
-			fmt.Fprintf(wr, "%s,\n", util.IndentSpace(indent))
-		}
-	}
-	indent--
-	comma := ","
-	if isLastElem {
-		comma = ""
-	}
-	fmt.Fprintf(wr, "%s]%s\n", util.IndentSpace(indent), comma)
-	return nil
-}
-
 func writeFieldData(wr io.Writer, data *translator.DataHolder, indent int, isLastElem bool) error {
 	fmt.Fprintf(wr, "%s\"data\": [\n", util.IndentSpace(indent))
 	indent++
 	for idx, rowData := range data.GetData() {
-		if err := writeRowData(wr, data.ASTRoot.SubNodes, rowData, indent, idx == len(data.GetData())-1); err != nil {
-			return err
+		writeRowData(wr, data.ASTRoot, rowData, indent, idx == len(data.GetData())-1, data.GetEnumValMap())
+		if idx != len(data.GetData())-1 { // ugly code
+			fmt.Fprintf(wr, "%s,\n", util.IndentSpace(indent))
 		}
 	}
 	indent--
@@ -143,8 +92,7 @@ func WriteToFile(data *translator.DataHolder, outDir string) error {
 	if err := template.ExecuteTemplate(wr, template.TmplJsonFields, tmplParams); err != nil {
 		return fmt.Errorf("exectue template failed|tmplName:%s -> %w", template.TmplJsonFields, err)
 	}
-	// writeFieldData(wr, data, indent, true)
-	writeDrive(wr, data, indent, true)
+	writeFieldData(wr, data, indent, true)
 	fmt.Fprintf(wr, "}\n")
 	return writer.WriteToFile(outDir, data.GetSheetName(), outFileSuffix, []byte(wr.String()))
 }
