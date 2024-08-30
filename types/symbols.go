@@ -9,7 +9,23 @@ const (
 	R_CURLY_BRACKET  = "}"
 )
 
+type Mark = string
 type Token = string
+
+const (
+	MARK_TYPE_BOOL   Mark = "bool"
+	MARK_TYPE_INT32  Mark = "int32"
+	MARK_TYPE_UINT32 Mark = "uint32"
+	MARK_TYPE_INT64  Mark = "int64"
+	MARK_TYPE_UINT64 Mark = "uint64"
+	MARK_TYPE_STRING Mark = "string"
+
+	MARK_DESC_VECTOR   Mark = "vector"
+	MARK_DESC_ARRAY    Mark = "array"
+	MARK_DESC_DATETIME Mark = "D"
+	MARK_DESC_ENUM     Mark = "E"
+	MARK_DESC_KEY      Mark = "K"
+)
 
 const (
 	TOK_LF_SQ_BRACKET Token = "[" // left square bracket
@@ -17,19 +33,18 @@ const (
 	TOK_LF_CR_BRACKET Token = "{" // left curly bracket
 	TOK_RG_CR_BRACKET Token = "}" // right curly bracket
 
-	TOK_TYPE_BOOL   Token = "bool"
-	TOK_TYPE_INT32  Token = "int32"
-	TOK_TYPE_UINT32 Token = "uint32"
-	TOK_TYPE_INT64  Token = "int64"
-	TOK_TYPE_UINT64 Token = "uint64"
-	TOK_TYPE_STRING Token = "string"
-
-	TOK_DESC_VECTOR Token = "vector"
-	TOK_DESC_ARRAY  Token = "array"
-	TOK_DESC_STRUCT Token = "struct"
-	TOK_DESC_ENUM   Token = "E"
-
-	TOK_PARSED_TYPE_DATETIME Token = "DateTime"
+	TOK_TYPE_BOOL        Token = "bool"
+	TOK_TYPE_INT32       Token = "int32"
+	TOK_TYPE_UINT32      Token = "uint32"
+	TOK_TYPE_INT64       Token = "int64"
+	TOK_TYPE_UINT64      Token = "uint64"
+	TOK_TYPE_STRING      Token = "string"
+	TOK_TYPE_STRUCT      Token = "struct"
+	TOK_TYPE_DATETIME    Token = "DateTime" // for golang
+	TOK_TYPE_ENUM        Token = "@Enum"
+	TOK_TYPE_VECTOR      Token = "@Vector"
+	TOK_TYPE_VEC_STRUCT  Token = "@VecStruct"
+	TOK_TYPE_ROOT_STRUCT Token = "@RootStruct"
 )
 
 var (

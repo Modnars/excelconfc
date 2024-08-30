@@ -11,7 +11,7 @@ type Field = translator.Node
 
 func CellVal(field *Field, cell string, evm types.EVM) string {
 	switch field.Type {
-	case types.TOK_TYPE_STRING, types.TOK_PARSED_TYPE_DATETIME:
+	case types.TOK_TYPE_STRING, types.TOK_TYPE_DATETIME:
 		return fmt.Sprintf(`"%s"`, cell)
 	case types.TOK_TYPE_BOOL:
 		if cell == "" || cell == "0" || cell == "false" {
