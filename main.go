@@ -18,8 +18,10 @@ func showErrorAndUsage(errMsg string) {
 func main() {
 	filePath := flag.String("excel", "", "target Excel config file path")
 	sheetName := flag.String("sheet", "", "target Excel config sheet")
-	goPackage := flag.String("go_package", "excelconf", "target protobuf option go_package value")
+	enumSheet := flag.String("enum_sheet", rules.DEFAULT_ENUM_SHEET_NAME, "enum definition sheet")
 	outDir := flag.String("outdir", ".", "output directory")
+	goPackage := flag.String("go_package", "excelconf", "target protobuf option go_package value")
+	addEnum := flag.Bool("add_enum", false, "add the enumeration values defined in the enumeration table to the current table output")
 	flag.BoolVar(&rules.DEBUG_MODE, "debug", false, "DEBUG mode allows invalid output")
 	flag.BoolVar(&util.NO_COLORFUL_LOG, "ncl", false, "`ncl` makes no colorful log output")
 
@@ -42,7 +44,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := compiler.Compile(*filePath, *sheetName, "ENUM_DESC", *goPackage, *outDir); err != nil {
+	c := compiler.New(
+		compiler.WithFilePath(*filePath),
+		compiler.WithSheetName(*sheetName),
+		compiler.WithEnumSheet(*enumSheet),
+		compiler.WithOutDir(*outDir),
+		compiler.WithGoPackage(*goPackage),
+		compiler.WithAddEnum(*addEnum),
+	)
+	if err := c.Compile(); err != nil {
 		util.LogError(err.Error())
 	}
+	// if err := compiler.Compile(*filePath, *sheetName, *enumSheet, *goPackage, *outDir); err != nil {
+	// 	util.LogError(err.Error())
+	// }
 }
