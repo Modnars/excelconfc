@@ -34,11 +34,11 @@ func toOutBytes(output string) ([]byte, error) {
 	return outBytes, nil
 }
 
-func writeGoDeclPackage(wr io.Writer, goPackage string) {
+func writeDeclPackage(wr io.Writer, goPackage string) {
 	fmt.Fprintf(wr, "\npackage %s\n", util.GetPackageName(goPackage))
 }
 
-func writeGoDeclImport(wr io.Writer, packages ...string) {
+func writeDeclImports(wr io.Writer, packages ...string) {
 	if len(packages) <= 0 {
 		return
 	} else if len(packages) == 1 {
@@ -74,7 +74,7 @@ func genGoConfKeyInfo(headers [][]string) (string, string) {
 		util.SnakeToPascal(headers[rules.ROW_IDX_NAME][keyIndex])
 }
 
-func writeGoFileComments(wr io.Writer, fileName string, sheetName string) error {
+func writeFileComments(wr io.Writer, fileName string, sheetName string) error {
 	template.ExecuteTemplate(wr, template.TmplGoCommentsHead, nil)
 	// 仅当 fileName 和 sheetName 有意义时才生成文件注释代码
 	if fileName != "" && sheetName != "" {
@@ -92,13 +92,13 @@ func writeGoFileComments(wr io.Writer, fileName string, sheetName string) error 
 	return nil
 }
 
-func writeGoDeclaration(wr io.Writer, goPackage string, importPkgs ...string) error {
-	writeGoDeclPackage(wr, goPackage)
-	writeGoDeclImport(wr, importPkgs...)
+func writeDeclaration(wr io.Writer, goPackage string, importPkgs ...string) error {
+	writeDeclPackage(wr, goPackage)
+	writeDeclImports(wr, importPkgs...)
 	return nil
 }
 
-func writeGoEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
+func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 	indent := 0
 	fmt.Fprintf(wr, "\n")
 	for _, enumType := range enumTypes {
@@ -147,7 +147,7 @@ func writeGoEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 	return nil
 }
 
-func writeConfMapStruct(wr io.Writer, headers [][]string, sheetName string) error {
+func writeStructMap(wr io.Writer, headers [][]string, sheetName string) error {
 	confKeyType, confKeyField := genGoConfKeyInfo(headers)
 	tmplParams := template.T{
 		"XXConf":         sheetName,
@@ -162,12 +162,12 @@ func writeConfMapStruct(wr io.Writer, headers [][]string, sheetName string) erro
 	return nil
 }
 
-func outputGoDefFile(goPackage string, outDir string) error {
+func outputDefFile(goPackage string, outDir string) error {
 	var wr strings.Builder
-	if err := writeGoFileComments(&wr, "", ""); err != nil {
+	if err := writeFileComments(&wr, "", ""); err != nil {
 		return fmt.Errorf("write Go file comments failed|fineName:%s -> %w", outGoDefFileName, err)
 	}
-	if err := writeGoDeclaration(&wr, goPackage, "encoding/json", "time"); err != nil {
+	if err := writeDeclaration(&wr, goPackage, "encoding/json", "time"); err != nil {
 		return fmt.Errorf("write Go declaration failed -> %w", err)
 	}
 	if err := template.ExecuteTemplate(&wr, template.TmplGoCodeDefDateTime, nil); err != nil {
@@ -192,58 +192,60 @@ func collectStructFields(field writer.Field, structFields []writer.Field) []writ
 	return structFields
 }
 
-func writeNestStruct(wr io.Writer, data *translator.DataHolder, sheetName string) error {
+func writeStruct(wr io.Writer, data *translator.DataHolder, sheetName string) error {
 	rootNode := &translator.Node{
 		Name:     sheetName,
 		SubNodes: data.ASTRoot.SubNodes,
 		Type:     types.TOK_TYPE_ROOT_STRUCT,
-		RawType:  sheetName,
+		DataType: sheetName,
 	}
 	structFields := []writer.Field{}
 	indent := 0
 	structFields = collectStructFields(rootNode, structFields)
 	doneStructSet := util.NewSet[string]()
 	for _, structField := range structFields {
-		if doneStructSet.Contains(structField.RawType) {
+		if doneStructSet.Contains(structField.DataType) {
 			continue
 		}
-		fmt.Fprintf(wr, "\ntype %s struct {\n", structField.RawType)
+		fmt.Fprintf(wr, "\ntype %s struct {\n", structField.DataType)
 		indent++
 		for _, subField := range structField.SubNodes {
 			if subField.IsVectorDecl() { // repeated
-				fmt.Fprintf(wr, "%s%s []%s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.RawType)
+				fmt.Fprintf(wr, "%s%s []%s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType)
 			} else if subField.IsStructDecl() {
-				fmt.Fprintf(wr, "%s%s %s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.RawType)
+				fmt.Fprintf(wr, "%s%s %s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType)
 			} else if subField.IsEnum() {
-				fmt.Fprintf(wr, "%s%s %s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.RawType)
+				fmt.Fprintf(wr, "%s%s %s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType)
 			} else {
 				fmt.Fprintf(wr, "%s%s %s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.Type)
 			}
 		}
 		indent--
 		fmt.Fprintf(wr, "}\n")
-		doneStructSet.Add(structField.RawType)
+		doneStructSet.Add(structField.DataType)
 	}
 	return nil
 }
 
-func outputGoFile(data *translator.DataHolder, goPackage string, outDir string) error {
+func outputSrcFile(data *translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	wr := &strings.Builder{}
 
-	if err := writeGoFileComments(wr, data.GetFileName(), data.GetSheetName()); err != nil {
+	if err := writeFileComments(wr, data.GetFileName(), data.GetSheetName()); err != nil {
 		return fmt.Errorf("generate Go file comments failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
 	}
-	if err := writeGoDeclaration(wr, goPackage, "encoding/json", "os"); err != nil {
+	if err := writeDeclaration(wr, goPackage, "encoding/json", "os"); err != nil {
 		return fmt.Errorf("generate Go declaration code failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
 	}
-	if err := writeGoEnum(wr, data.GetEnumTypes()); err != nil {
-		return fmt.Errorf("generate Go enum code failed|file:%s|sheet:%s|enumTypes:%v -> %w", data.GetFileName(), data.GetSheetName(), data.GetEnumTypes(), err)
+	if addEnum {
+		if err := writeEnum(wr, data.GetEnumTypes()); err != nil {
+			return fmt.Errorf("generate Go enum code failed|file:%s|sheet:%s|enumTypes:%v -> %w", data.GetFileName(), data.GetSheetName(), data.GetEnumTypes(), err)
+		}
 	}
-	if err := writeNestStruct(wr, data, data.GetSheetName()); err != nil {
+	if err := writeStruct(wr, data, data.GetSheetName()); err != nil {
 		return fmt.Errorf("generate Conf Go code failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
 	}
-	if err := writeConfMapStruct(wr, data.GetHeaders(), data.GetSheetName()); err != nil {
-		return fmt.Errorf("generate ConfMap Go code failed|file:%s|sheet:%s|headers:{%+v} -> %w", data.GetFileName(), data.GetSheetName(), data.GetHeaders(), err)
+	if err := writeStructMap(wr, data.GetHeaders(), data.GetSheetName()); err != nil {
+		return fmt.Errorf("generate ConfMap Go code failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
 	}
 
 	outBytes, err := toOutBytes(wr.String())
@@ -253,21 +255,11 @@ func outputGoFile(data *translator.DataHolder, goPackage string, outDir string) 
 	return writer.WriteToFile(outDir, data.GetSheetName(), outFileSuffix, outBytes)
 }
 
-func WriteToGoFile(data *translator.DataHolder, goPackage string, outDir string) error {
-	if err := outputGoDefFile(goPackage, outDir); err != nil {
+func WriteToFile(data *translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
+	if err := outputDefFile(goPackage, outDir); err != nil {
 		return fmt.Errorf("generate go def file failed -> %w", err)
 	}
-	if err := outputGoFile(data, goPackage, outDir); err != nil {
-		return fmt.Errorf("generate go code file failed -> %w", err)
-	}
-	return nil
-}
-
-func WriteToFile(data *translator.DataHolder, goPackage string, outDir string) error {
-	if err := outputGoDefFile(goPackage, outDir); err != nil {
-		return fmt.Errorf("generate go def file failed -> %w", err)
-	}
-	if err := outputGoFile(data, goPackage, outDir); err != nil {
+	if err := outputSrcFile(data, goPackage, outDir, addEnum); err != nil {
 		return fmt.Errorf("generate go code file failed -> %w", err)
 	}
 	return nil

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/code/template"
-	"git.woa.com/modnarshen/excelconfc/rules"
 	"git.woa.com/modnarshen/excelconfc/translator"
 	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
@@ -15,10 +14,10 @@ import (
 )
 
 const (
-	outProtoFileSuffix = ".ec.proto"
+	outFileSuffix = ".ec.proto"
 )
 
-func writeProtoFileComment(wr io.Writer, filePath string, sheetName string) error {
+func writeFileComment(wr io.Writer, filePath string, sheetName string) error {
 	tmplParams := template.T{
 		"SourceFile":  path.Base(filePath),
 		"SourceSheet": sheetName,
@@ -29,7 +28,7 @@ func writeProtoFileComment(wr io.Writer, filePath string, sheetName string) erro
 	return nil
 }
 
-func writeProtoDecl(wr io.Writer, goPackage string) error {
+func writeDeclaration(wr io.Writer, goPackage string) error {
 	tmplParams := template.T{
 		"PackageName": util.GetPackageName(goPackage),
 		"GoPackage":   goPackage,
@@ -37,20 +36,6 @@ func writeProtoDecl(wr io.Writer, goPackage string) error {
 	if err := template.ExecuteTemplate(wr, template.TmplProtoCodePackage, tmplParams); err != nil {
 		return fmt.Errorf("exectue template failed|tmplName:%s -> %w", template.TmplProtoCodePackage, err)
 	}
-	return nil
-}
-
-func writeProtoMessage(wr io.Writer, headers [][]string, sheetName string) error {
-	indent := 0
-	msgLabelNumber := 0
-	fmt.Fprintf(wr, "\nmessage %s {\n", sheetName)
-	indent += 1
-	for i, name := range headers[rules.ROW_IDX_NAME] {
-		msgLabelNumber += 1
-		fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), headers[rules.ROW_IDX_TYPE][i], name, msgLabelNumber)
-	}
-	indent -= 1
-	fmt.Fprintf(wr, "}\n")
 	return nil
 }
 
@@ -66,43 +51,43 @@ func collectMessages(field writer.Field, messages []writer.Field) []writer.Field
 	return messages
 }
 
-func writeMessage(wr io.Writer, data *translator.DataHolder, sheetName string) error {
+func writeMessage(wr io.Writer, data *translator.DataHolder, rootMsgName string) error {
 	rootMessage := &translator.Node{
-		Name:     sheetName,
+		Name:     rootMsgName,
 		SubNodes: data.ASTRoot.SubNodes,
 		Type:     types.TOK_TYPE_ROOT_STRUCT,
-		RawType:  sheetName,
+		DataType: rootMsgName,
 	}
 	messages := collectMessages(rootMessage, nil)
 	indent := 0
-	doneMessageSet := util.NewSet[string]()
+	doneMsgSet := util.NewSet[string]()
 	for _, message := range messages {
-		if doneMessageSet.Contains(message.RawType) {
+		if doneMsgSet.Contains(message.DataType) {
 			continue
 		}
-		fmt.Fprintf(wr, "\nmessage %s {\n", message.RawType)
+		fmt.Fprintf(wr, "\nmessage %s {\n", message.DataType)
 		indent++
-		msgLabelNumber := 0
-		for _, subMessage := range message.SubNodes {
-			msgLabelNumber++
-			if subMessage.IsVectorDecl() {
-				fmt.Fprintf(wr, "%srepeated %s %s = %d;\n", util.IndentSpace(indent), subMessage.RawType, subMessage.Name, msgLabelNumber)
-			} else if subMessage.IsStructDecl() {
-				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), subMessage.RawType, subMessage.Name, msgLabelNumber)
-			} else if subMessage.IsEnum() {
-				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), subMessage.RawType, subMessage.Name, msgLabelNumber)
+		msgFieldNo := 0
+		for _, subMsg := range message.SubNodes {
+			msgFieldNo++
+			if subMsg.IsVectorDecl() {
+				fmt.Fprintf(wr, "%srepeated %s %s = %d;\n", util.IndentSpace(indent), subMsg.DataType, subMsg.Name, msgFieldNo)
+			} else if subMsg.IsStructDecl() {
+				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), subMsg.DataType, subMsg.Name, msgFieldNo)
+			} else if subMsg.IsEnum() {
+				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), subMsg.DataType, subMsg.Name, msgFieldNo)
 			} else {
-				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), subMessage.RawType, subMessage.Name, msgLabelNumber)
+				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), subMsg.DataType, subMsg.Name, msgFieldNo)
 			}
 		}
 		indent--
 		fmt.Fprintf(wr, "}\n")
-		doneMessageSet.Add(message.RawType)
+		doneMsgSet.Add(message.DataType)
 	}
 	return nil
 }
 
-func writeProtoEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
+func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 	indent := 0
 	for _, enumType := range enumTypes {
 		fmt.Fprintf(wr, "\nenum %s {\n", enumType.Name)
@@ -116,21 +101,23 @@ func writeProtoEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 	return nil
 }
 
-func WriteToFile(data *translator.DataHolder, goPackage string, outDir string) error {
+func WriteToFile(data *translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	wr := &strings.Builder{}
 
-	if err := writeProtoFileComment(wr, data.GetFileName(), data.GetSheetName()); err != nil {
+	if err := writeFileComment(wr, data.GetFileName(), data.GetSheetName()); err != nil {
 		return fmt.Errorf("generate proto file comment failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
 	}
-	if err := writeProtoDecl(wr, goPackage); err != nil {
+	if err := writeDeclaration(wr, goPackage); err != nil {
 		return fmt.Errorf("generate proto declaration failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
 	}
-	if err := writeProtoEnum(wr, data.GetEnumTypes()); err != nil {
-		return fmt.Errorf("generate proto message failed|file:%s|sheet:%s|enumTypes:{%+v} -> %w", data.GetFileName(), data.GetSheetName(), data.GetEnumTypes(), err)
+	if addEnum { // 只有明确指明需要添加枚举定义时，才将枚举定义输出
+		if err := writeEnum(wr, data.GetEnumTypes()); err != nil {
+			return fmt.Errorf("generate proto message failed|file:%s|sheet:%s|enumTypes:{%+v} -> %w", data.GetFileName(), data.GetSheetName(), data.GetEnumTypes(), err)
+		}
 	}
 	if err := writeMessage(wr, data, data.GetSheetName()); err != nil {
 		return fmt.Errorf("generate proto message failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
 	}
 
-	return writer.WriteToFile(outDir, data.GetSheetName(), outProtoFileSuffix, []byte(wr.String()))
+	return writer.WriteToFile(outDir, data.GetSheetName(), outFileSuffix, []byte(wr.String()))
 }

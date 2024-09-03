@@ -12,7 +12,7 @@ import (
 type Node struct {
 	Name     string  // 字段名（解析后）
 	Type     string  // 字段类型（解析后，可供解析时直接取用的类型）
-	RawType  string  // 原始类型（例如 Excel 中原始配置的类型）
+	DataType string  // 数据类型（例如 Excel 中原始配置的类型）
 	Desc     string  // 修饰符（比如 Excel 配置中使用 D 来修饰 string 类型为时间类型）
 	Group    string  // 分组（区分前台客户端、后台服务器等）
 	ColIdx   int     // 列坐标，用于索引源数据
@@ -27,37 +27,48 @@ func (n *Node) AddSubNode(subNode *Node) {
 
 type NodeOption = func(node *Node)
 
-func removeLabel(str string, labels ...string) (string, bool) {
+// 删除传入的所有标记，如果成功删除任意标记，返回成功删除标记后的 s 和 true，否则返回 s 本身和 false
+func removeAllMarks(str string, marks ...string) (string, bool) {
 	removed := false
-	for _, label := range labels {
-		if strings.Contains(str, label) {
-			str = strings.ReplaceAll(str, label, "")
+	for _, mark := range marks {
+		if strings.Contains(str, mark) {
+			str = strings.ReplaceAll(str, mark, "")
 			removed = true
 		}
 	}
 	return str, removed
 }
 
+// 删除指定标记，并统计标记 mark 被删除的个数（即 mark 在 s 中出现的次数）
+func removeAndCountMark(s string, mark string) (string, int) {
+	count := 0
+	for idx := strings.Index(s, mark); idx != -1; idx = strings.Index(s, mark) {
+		count++
+		s = s[:idx] + s[idx+len(mark):]
+	}
+	return s, count
+}
+
 func WithName(name string) NodeOption {
 	return func(node *Node) {
 		isFound := false
-		if name, isFound = removeLabel(name, "|S", "|s"); isFound {
+		if name, isFound = removeAllMarks(name, "|S", "|s"); isFound {
 			node.Group += "S"
 		}
-		if name, isFound = removeLabel(name, "|C", "|c"); isFound {
+		if name, isFound = removeAllMarks(name, "|C", "|c"); isFound {
 			node.Group += "C"
 		}
 
-		if name, isFound = removeLabel(name, "["); isFound {
+		if name, isFound = removeAllMarks(name, "["); isFound {
 			node.structLabel += "["
 		}
-		if name, isFound = removeLabel(name, "{"); isFound {
+		if name, isFound = removeAllMarks(name, "{"); isFound {
 			node.structLabel += "{"
 		}
-		if name, isFound = removeLabel(name, "]"); isFound {
+		if name, isFound = removeAllMarks(name, "]"); isFound {
 			node.structLabel += "]"
 		}
-		if name, isFound = removeLabel(name, "}"); isFound {
+		if name, isFound = removeAllMarks(name, "}"); isFound {
 			node.structLabel += "}"
 		}
 
@@ -71,14 +82,14 @@ func WithName(name string) NodeOption {
 func WithType(tp string) NodeOption {
 	return func(node *Node) {
 		node.Type = tp
-		node.RawType = tp
+		node.DataType = tp
 	}
 }
 
 func WithDesc(desc string) NodeOption {
 	return func(node *Node) {
 		node.Desc = desc
-		if desc == types.MARK_DESC_DATETIME && node.RawType == types.MARK_TYPE_STRING {
+		if desc == types.MARK_DESC_DATETIME && node.DataType == types.MARK_TYPE_STRING {
 			node.Type = types.TOK_TYPE_DATETIME
 		}
 		if desc == types.MARK_DESC_ENUM {
@@ -87,7 +98,7 @@ func WithDesc(desc string) NodeOption {
 		if desc == types.MARK_DESC_VECTOR {
 			node.Type = types.TOK_TYPE_VECTOR
 		}
-		if desc == "" && !types.IsBasicType(node.RawType) {
+		if desc == "" && !types.IsBasicType(node.DataType) {
 			node.Type = types.TOK_TYPE_STRUCT
 		}
 	}
@@ -108,6 +119,9 @@ func NewNode(options ...NodeOption) *Node {
 }
 
 func TransToNodes(headers [][]string) ([]*Node, error) {
+	if len(headers) < rules.ROW_HEAD_MAX {
+		return nil, fmt.Errorf("invalid line count in headers")
+	}
 	nodes := []*Node{}
 	for colIdx := range headers[rules.ROW_IDX_NAME] {
 		newFiled := NewNode(
@@ -194,9 +208,9 @@ func BuildNodeTree(nodes []*Node) *Node {
 		}
 		if node.IsVecNodeBegin() {
 			structNode := &Node{
-				Name:    fmt.Sprintf("%s[%d]", vecNodeStack.PeekOrZero().Name, len(vecNodeStack.PeekOrZero().SubNodes)),
-				Type:    types.TOK_TYPE_VEC_STRUCT,
-				RawType: vecNodeStack.PeekOrZero().RawType,
+				Name:     fmt.Sprintf("%s[%d]", vecNodeStack.PeekOrZero().Name, len(vecNodeStack.PeekOrZero().SubNodes)),
+				Type:     types.TOK_TYPE_VEC_STRUCT,
+				DataType: vecNodeStack.PeekOrZero().DataType,
 			}
 			vecNodeStack.PeekOrZero().AddSubNode(structNode)
 			structStack.Push(structNode)

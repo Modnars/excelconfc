@@ -10,9 +10,12 @@ import (
 	"git.woa.com/modnarshen/excelconfc/util"
 )
 
-func showErrorAndUsage(errMsg string) {
-	fmt.Fprintln(os.Stderr, errMsg)
-	flag.Usage()
+func makeSureArgv(isPass bool, errMsg string) {
+	if !isPass {
+		fmt.Fprintln(os.Stderr, errMsg)
+		flag.Usage()
+		os.Exit(1)
+	}
 }
 
 func main() {
@@ -35,27 +38,17 @@ func main() {
 		flag.Parse()
 	}
 
-	if *filePath == "" {
-		showErrorAndUsage("Error: -excel is a required parameter")
-		os.Exit(1)
-	}
-	if *sheetName == "" {
-		showErrorAndUsage("Error: -sheet is a required parameter")
-		os.Exit(1)
-	}
+	makeSureArgv(*filePath != "", "Error: -excel is a required parameter")
+	makeSureArgv(*sheetName != "", "Error: -sheet is a required parameter")
 
-	c := compiler.New(
+	if err := compiler.New(
 		compiler.WithFilePath(*filePath),
 		compiler.WithSheetName(*sheetName),
 		compiler.WithEnumSheet(*enumSheet),
 		compiler.WithOutDir(*outDir),
 		compiler.WithGoPackage(*goPackage),
 		compiler.WithAddEnum(*addEnum),
-	)
-	if err := c.Compile(); err != nil {
+	).Compile(); err != nil {
 		util.LogError(err.Error())
 	}
-	// if err := compiler.Compile(*filePath, *sheetName, *enumSheet, *goPackage, *outDir); err != nil {
-	// 	util.LogError(err.Error())
-	// }
 }

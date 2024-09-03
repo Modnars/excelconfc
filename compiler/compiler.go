@@ -73,22 +73,20 @@ func (c *Compiler) Compile() error {
 	if err != nil {
 		return fmt.Errorf("exec ReadExcel failed|filePath:%s|sheetName:%s -> %w", c.filePath, c.sheetName, err)
 	}
-	headers, err := translator.TransToNodes(xlsxData.GetHeaders())
+	dataHolder, err := translator.NewDataHolder(
+		translator.WithXlsxData(xlsxData),
+	)
 	if err != nil {
-		return fmt.Errorf("exec TransToNodes failed -> %w", err)
+		return fmt.Errorf("NewDataHolder failed|file:%s|sheet:%s -> %w", c.filePath, c.sheetName, err)
 	}
-	dataHolder := &translator.DataHolder{
-		DataHolder: xlsxData,
-		ASTRoot:    translator.BuildNodeTree(headers),
+	if err := protobuf.WriteToFile(dataHolder, c.goPackage, c.outDir, c.addEnum); err != nil {
+		return fmt.Errorf("exec WriteToProto failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
+	}
+	if err := golang.WriteToFile(dataHolder, c.goPackage, c.outDir, c.addEnum); err != nil {
+		return fmt.Errorf("exec golang.WriteToFile failed|file:%s|sheet:%s -> %w", dataHolder.GetFileName(), dataHolder.GetSheetName(), err)
 	}
 	if err := json.WriteToFile(dataHolder, c.outDir); err != nil {
 		return fmt.Errorf("exec json.WriteToFile failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
-	}
-	if err := golang.WriteToFile(dataHolder, c.goPackage, c.outDir); err != nil {
-		return fmt.Errorf("exec golang.WriteToFile failed|file:%s|sheet:%s -> %w", dataHolder.GetFileName(), dataHolder.GetSheetName(), err)
-	}
-	if err := protobuf.WriteToFile(dataHolder, c.goPackage, c.outDir); err != nil {
-		return fmt.Errorf("exec WriteToProto failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
 	}
 	return nil
 }

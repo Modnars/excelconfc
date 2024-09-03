@@ -25,6 +25,9 @@ const (
 	MARK_DESC_DATETIME Mark = "D"
 	MARK_DESC_ENUM     Mark = "E"
 	MARK_DESC_KEY      Mark = "K"
+
+	MARK_VAL_TRUE  Mark = "true"
+	MARK_VAL_FALSE Mark = "false"
 )
 
 const (
