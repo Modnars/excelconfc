@@ -14,10 +14,10 @@ func CellVal(field *Field, cell string, evm types.EVM) string {
 	case types.TOK_TYPE_STRING, types.TOK_TYPE_DATETIME:
 		return fmt.Sprintf(`"%s"`, cell)
 	case types.TOK_TYPE_BOOL:
-		if cell == "" || cell == "0" || cell == "false" {
-			return "false"
+		if cell == "" || cell == "0" || cell == types.MARK_VAL_FALSE {
+			return types.TOK_VAL_FALSE
 		} else {
-			return "true"
+			return types.TOK_VAL_TRUE
 		}
 	case types.TOK_TYPE_INT32:
 		return cell
@@ -27,7 +27,7 @@ func CellVal(field *Field, cell string, evm types.EVM) string {
 		return cell
 	case types.TOK_TYPE_UINT64:
 		return cell
-	case "Enum":
+	case types.TOK_TYPE_ENUM:
 		return evm[cell].ID
 	}
 	return cell

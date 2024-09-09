@@ -48,6 +48,9 @@ const (
 	TOK_TYPE_VECTOR      Token = "@Vector"
 	TOK_TYPE_VEC_STRUCT  Token = "@VecStruct"
 	TOK_TYPE_ROOT_STRUCT Token = "@RootStruct"
+
+	TOK_VAL_TRUE  Token = "true"
+	TOK_VAL_FALSE Token = "false"
 )
 
 var (
