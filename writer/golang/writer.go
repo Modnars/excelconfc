@@ -230,29 +230,29 @@ func writeStruct(wr io.Writer, data *translator.DataHolder, sheetName string) er
 func outputSrcFile(data *translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	wr := &strings.Builder{}
 
-	if err := writeFileComments(wr, data.GetFileName(), data.GetSheetName()); err != nil {
-		return fmt.Errorf("generate Go file comments failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
+	if err := writeFileComments(wr, data.FileName(), data.SheetName()); err != nil {
+		return fmt.Errorf("generate Go file comments failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
 	if err := writeDeclaration(wr, goPackage, "encoding/json", "os"); err != nil {
-		return fmt.Errorf("generate Go declaration code failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
+		return fmt.Errorf("generate Go declaration code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
 	if addEnum {
-		if err := writeEnum(wr, data.GetEnumTypes()); err != nil {
-			return fmt.Errorf("generate Go enum code failed|file:%s|sheet:%s|enumTypes:%v -> %w", data.GetFileName(), data.GetSheetName(), data.GetEnumTypes(), err)
+		if err := writeEnum(wr, data.EnumTypes()); err != nil {
+			return fmt.Errorf("generate Go enum code failed|file:%s|sheet:%s|enumTypes:%v -> %w", data.FileName(), data.SheetName(), data.EnumTypes(), err)
 		}
 	}
-	if err := writeStruct(wr, data, data.GetSheetName()); err != nil {
-		return fmt.Errorf("generate Conf Go code failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
+	if err := writeStruct(wr, data, data.SheetName()); err != nil {
+		return fmt.Errorf("generate Conf Go code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
-	if err := writeStructMap(wr, data.GetHeaders(), data.GetSheetName()); err != nil {
-		return fmt.Errorf("generate ConfMap Go code failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
+	if err := writeStructMap(wr, data.Headers(), data.SheetName()); err != nil {
+		return fmt.Errorf("generate ConfMap Go code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
 
 	outBytes, err := toOutBytes(wr.String())
 	if err != nil {
 		return fmt.Errorf("to output bytes failed -> %w", err)
 	}
-	return writer.WriteToFile(outDir, data.GetSheetName(), outFileSuffix, outBytes)
+	return writer.WriteToFile(outDir, data.SheetName(), outFileSuffix, outBytes)
 }
 
 func WriteToFile(data *translator.DataHolder, goPackage string, outDir string, addEnum bool) error {

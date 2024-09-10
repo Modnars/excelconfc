@@ -16,7 +16,7 @@ type NewDataHolderOption func(*DataHolder) error
 func WithXlsxData(xlsxData types.DataHolder) NewDataHolderOption {
 	return func(dh *DataHolder) error {
 		dh.DataHolder = xlsxData
-		if nodes, err := TransToNodes(xlsxData.GetHeaders()); err != nil {
+		if nodes, err := TransToNodes(xlsxData.Headers()); err != nil {
 			return err
 		} else {
 			dh.ASTRoot = BuildNodeTree(nodes)

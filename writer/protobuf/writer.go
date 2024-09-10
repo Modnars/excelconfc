@@ -104,20 +104,20 @@ func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 func WriteToFile(data *translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	wr := &strings.Builder{}
 
-	if err := writeFileComment(wr, data.GetFileName(), data.GetSheetName()); err != nil {
-		return fmt.Errorf("generate proto file comment failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
+	if err := writeFileComment(wr, data.FileName(), data.SheetName()); err != nil {
+		return fmt.Errorf("generate proto file comment failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
 	if err := writeDeclaration(wr, goPackage); err != nil {
-		return fmt.Errorf("generate proto declaration failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
+		return fmt.Errorf("generate proto declaration failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
 	if addEnum { // 只有明确指明需要添加枚举定义时，才将枚举定义输出
-		if err := writeEnum(wr, data.GetEnumTypes()); err != nil {
-			return fmt.Errorf("generate proto message failed|file:%s|sheet:%s|enumTypes:{%+v} -> %w", data.GetFileName(), data.GetSheetName(), data.GetEnumTypes(), err)
+		if err := writeEnum(wr, data.EnumTypes()); err != nil {
+			return fmt.Errorf("generate proto message failed|file:%s|sheet:%s|enumTypes:{%+v} -> %w", data.FileName(), data.SheetName(), data.EnumTypes(), err)
 		}
 	}
-	if err := writeMessage(wr, data, data.GetSheetName()); err != nil {
-		return fmt.Errorf("generate proto message failed|file:%s|sheet:%s -> %w", data.GetFileName(), data.GetSheetName(), err)
+	if err := writeMessage(wr, data, data.SheetName()); err != nil {
+		return fmt.Errorf("generate proto message failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
 
-	return writer.WriteToFile(outDir, data.GetSheetName(), outFileSuffix, []byte(wr.String()))
+	return writer.WriteToFile(outDir, data.SheetName(), outFileSuffix, []byte(wr.String()))
 }

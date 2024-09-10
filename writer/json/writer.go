@@ -62,9 +62,9 @@ func writeRowData(wr io.Writer, field *Field, vals []string, indent int, isLastE
 func writeFieldData(wr io.Writer, data *translator.DataHolder, indent int, isLastElem bool) error {
 	fmt.Fprintf(wr, "%s\"data\": [\n", util.IndentSpace(indent))
 	indent++
-	for idx, rowData := range data.GetData() {
-		writeRowData(wr, data.ASTRoot, rowData, indent, idx == len(data.GetData())-1, data.GetEnumValMap())
-		if idx != len(data.GetData())-1 { // ugly code
+	for idx, rowData := range data.Data() {
+		writeRowData(wr, data.ASTRoot, rowData, indent, idx == len(data.Data())-1, data.EnumValMap())
+		if idx != len(data.Data())-1 { // ugly code
 			fmt.Fprintf(wr, "%s,\n", util.IndentSpace(indent))
 		}
 	}
@@ -85,8 +85,8 @@ func WriteToFile(data *translator.DataHolder, outDir string) error {
 	indent++
 	tmplParams := template.T{
 		"Indentation": util.IndentSpace(indent),
-		"File":        data.GetFileName(),
-		"Sheet":       data.GetSheetName(),
+		"File":        data.FileName(),
+		"Sheet":       data.SheetName(),
 		"OutDir":      outDir,
 	}
 	if err := template.ExecuteTemplate(wr, template.TmplJsonFields, tmplParams); err != nil {
@@ -94,5 +94,5 @@ func WriteToFile(data *translator.DataHolder, outDir string) error {
 	}
 	writeFieldData(wr, data, indent, true)
 	fmt.Fprintf(wr, "}\n")
-	return writer.WriteToFile(outDir, data.GetSheetName(), outFileSuffix, []byte(wr.String()))
+	return writer.WriteToFile(outDir, data.SheetName(), outFileSuffix, []byte(wr.String()))
 }

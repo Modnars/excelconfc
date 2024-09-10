@@ -1,4 +1,4 @@
-package reader
+package xlsx
 
 import (
 	"fmt"
@@ -6,11 +6,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/xuri/excelize/v2"
-
 	"git.woa.com/modnarshen/excelconfc/rules"
 	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
+	"github.com/xuri/excelize/v2"
 )
 
 const (
@@ -78,7 +77,7 @@ func readXlsxEnumSheet(xlsxFile *excelize.File, enumSheetName string) ([]*types.
 	return allEnumInfos[1:], enumValMap, nil
 }
 
-func ReadXlsx(filePath string, sheetName string, enumSheetName string) (types.DataHolder, error) {
+func ReadFile(filePath string, sheetName string, enumSheetName string) (types.DataHolder, error) {
 	xlsxFile, err := excelize.OpenFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("excelize open file failed|filePath:%s|sheet:%s -> %w", filePath, sheetName, err)
@@ -89,7 +88,7 @@ func ReadXlsx(filePath string, sheetName string, enumSheetName string) (types.Da
 		}
 	}()
 
-	dataHeaders, dataRows, err := readXlsxDataSheet(xlsxFile, sheetName)
+	headers, data, err := readXlsxDataSheet(xlsxFile, sheetName)
 	if err != nil {
 		return nil, fmt.Errorf("read data sheet failed|file:%s|sheet:%s -> %w", filepath.Base(filePath), sheetName, err)
 	}
@@ -97,14 +96,14 @@ func ReadXlsx(filePath string, sheetName string, enumSheetName string) (types.Da
 	if err != nil {
 		return nil, fmt.Errorf("read enum sheet failed|file:%s|sheet:%s -> %w", filepath.Base(filePath), sheetName, err)
 	}
-	return &types.XlsxDataHolder{
-			FileName:    filepath.Base(filePath),
-			SheetName:   sheetName,
-			DataHeaders: dataHeaders,
-			DataRows:    dataRows,
-			EnumTypes:   enumTypes,
-			EnumValMap:  enumValMap},
-		nil
+	return NewDataHolder(
+		WithFileName(filepath.Base(filePath)),
+		WithSheetName(sheetName),
+		WithHeaders(headers),
+		WithData(data),
+		WithEnumTypes(enumTypes),
+		WithEnumValMap(enumValMap),
+	), nil
 }
 
 func init() {
