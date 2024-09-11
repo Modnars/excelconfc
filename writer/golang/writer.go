@@ -110,7 +110,7 @@ func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 		indent++
 		fmt.Fprintf(wr, "\n")
 		for _, enumVal := range enumType.EnumVals {
-			fmt.Fprintf(wr, "%s%s %s = %s\n", util.IndentSpace(indent), enumVal.Name, enumType.Name, enumVal.ID)
+			fmt.Fprintf(wr, "%s%s %s = %v\n", util.IndentSpace(indent), enumVal.Name, enumType.Name, enumVal.ID)
 		}
 		indent--
 	}
@@ -122,14 +122,14 @@ func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 		fmt.Fprintf(wr, "\n%s%s_name = map[int32]string{\n", util.IndentSpace(indent), enumType.Name)
 		indent++
 		for _, enumVal := range enumType.EnumVals {
-			fmt.Fprintf(wr, "%s%s: \"%s\",\n", util.IndentSpace(indent), enumVal.ID, enumVal.Name)
+			fmt.Fprintf(wr, "%s%v: \"%s\",\n", util.IndentSpace(indent), enumVal.ID, enumVal.Name)
 		}
 		indent--
 		fmt.Fprintf(wr, "%s}\n", util.IndentSpace(indent))
 		fmt.Fprintf(wr, "%s%s_value = map[string]int32{\n", util.IndentSpace(indent), enumType.Name)
 		indent++
 		for _, enumVal := range enumType.EnumVals {
-			fmt.Fprintf(wr, "%s\"%s\": %s,\n", util.IndentSpace(indent), enumVal.Name, enumVal.ID)
+			fmt.Fprintf(wr, "%s\"%s\": %v,\n", util.IndentSpace(indent), enumVal.Name, enumVal.ID)
 		}
 		indent--
 		fmt.Fprintf(wr, "%s}\n", util.IndentSpace(indent))

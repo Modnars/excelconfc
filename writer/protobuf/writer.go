@@ -93,7 +93,7 @@ func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 		fmt.Fprintf(wr, "\nenum %s {\n", enumType.Name)
 		indent++
 		for _, enumVal := range enumType.EnumVals {
-			fmt.Fprintf(wr, "%s%s = %s;\n", util.IndentSpace(indent), enumVal.Name, enumVal.ID)
+			fmt.Fprintf(wr, "%s%s = %v;\n", util.IndentSpace(indent), enumVal.Name, enumVal.ID)
 		}
 		indent--
 		fmt.Fprintf(wr, "}\n")
