@@ -211,13 +211,13 @@ func writeStruct(wr io.Writer, data *translator.DataHolder, sheetName string) er
 		indent++
 		for _, subField := range structField.SubNodes {
 			if subField.IsVectorDecl() { // repeated
-				fmt.Fprintf(wr, "%s%s []%s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType)
+				fmt.Fprintf(wr, "%s%s []%s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType, subField.Name)
 			} else if subField.IsStructDecl() {
-				fmt.Fprintf(wr, "%s%s %s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType)
+				fmt.Fprintf(wr, "%s%s %s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType, subField.Name)
 			} else if subField.IsEnum() {
-				fmt.Fprintf(wr, "%s%s %s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType)
+				fmt.Fprintf(wr, "%s%s %s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType, subField.Name)
 			} else {
-				fmt.Fprintf(wr, "%s%s %s\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.Type)
+				fmt.Fprintf(wr, "%s%s %s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.Type, subField.Name)
 			}
 		}
 		indent--
