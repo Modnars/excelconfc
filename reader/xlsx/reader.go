@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/rules"
@@ -20,7 +21,7 @@ var (
 	reEnumDeclType *regexp.Regexp
 )
 
-func readXlsxDataSheet(xlsxFile *excelize.File, dataSheetName string) ([][]string, [][]string, error) {
+func readDataSheet(xlsxFile *excelize.File, dataSheetName string) ([][]string, [][]string, error) {
 	rows, err := xlsxFile.GetRows(dataSheetName)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get data sheet rows failed|sheet:%s -> %w", dataSheetName, err)
@@ -46,7 +47,7 @@ func readXlsxDataSheet(xlsxFile *excelize.File, dataSheetName string) ([][]strin
 	return headers, rows[rules.ROW_HEAD_MAX:], nil
 }
 
-func readXlsxEnumSheet(xlsxFile *excelize.File, enumSheetName string) ([]*types.EnumTypeSt, map[string]*types.EnumValSt, error) {
+func readEnumSheet(xlsxFile *excelize.File, enumSheetName string) ([]*types.EnumTypeSt, map[string]*types.EnumValSt, error) {
 	rows, err := xlsxFile.GetRows(enumSheetName)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get enum sheet rows failed|sheet:%s -> %w", enumSheetName, err)
@@ -67,7 +68,11 @@ func readXlsxEnumSheet(xlsxFile *excelize.File, enumSheetName string) ([]*types.
 			continue
 		}
 		if strings.HasPrefix(rows[i][0], "["+currLabel+"]") {
-			newEnumVal := &types.EnumValSt{Name: rows[i][2], ID: rows[i][1]}
+			validId, err := strconv.ParseInt(rows[i][1], 10, 32)
+			if err != nil {
+				return nil, nil, err
+			}
+			newEnumVal := &types.EnumValSt{Name: rows[i][2], ID: validId}
 			currEnumInfo.EnumVals = append(currEnumInfo.EnumVals, newEnumVal)
 			enumValMap[rows[i][0]] = newEnumVal
 			continue
@@ -88,11 +93,11 @@ func ReadFile(filePath string, sheetName string, enumSheetName string) (types.Da
 		}
 	}()
 
-	headers, data, err := readXlsxDataSheet(xlsxFile, sheetName)
+	headers, data, err := readDataSheet(xlsxFile, sheetName)
 	if err != nil {
 		return nil, fmt.Errorf("read data sheet failed|file:%s|sheet:%s -> %w", filepath.Base(filePath), sheetName, err)
 	}
-	enumTypes, enumValMap, err := readXlsxEnumSheet(xlsxFile, enumSheetName)
+	enumTypes, enumValMap, err := readEnumSheet(xlsxFile, enumSheetName)
 	if err != nil {
 		return nil, fmt.Errorf("read enum sheet failed|file:%s|sheet:%s -> %w", filepath.Base(filePath), sheetName, err)
 	}

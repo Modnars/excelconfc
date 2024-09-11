@@ -70,3 +70,7 @@ func IsIntType(tok Token) bool {
 func IsStringType(tok Token) bool {
 	return _STRING_TYPES.Contains(tok)
 }
+
+func IsRealStruct(tok Token) bool {
+	return tok == TOK_TYPE_STRUCT
+}

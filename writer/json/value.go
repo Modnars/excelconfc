@@ -2,6 +2,7 @@ package json
 
 import (
 	"fmt"
+	"strconv"
 
 	"git.woa.com/modnarshen/excelconfc/translator"
 	"git.woa.com/modnarshen/excelconfc/types"
@@ -9,26 +10,29 @@ import (
 
 type Field = translator.Node
 
-func CellVal(field *Field, cell string, evm types.EVM) string {
+func CellValue(field *Field, cell string, evm types.EVM) (any, error) {
 	switch field.Type {
 	case types.TOK_TYPE_STRING, types.TOK_TYPE_DATETIME:
-		return fmt.Sprintf(`"%s"`, cell)
+		return cell, nil
 	case types.TOK_TYPE_BOOL:
 		if cell == "" || cell == "0" || cell == types.MARK_VAL_FALSE {
-			return types.TOK_VAL_FALSE
+			return false, nil
 		} else {
-			return types.TOK_VAL_TRUE
+			return true, nil
 		}
 	case types.TOK_TYPE_INT32:
-		return cell
+		return strconv.ParseInt(cell, 10, 32)
 	case types.TOK_TYPE_UINT32:
-		return cell
+		return strconv.ParseUint(cell, 10, 32)
 	case types.TOK_TYPE_INT64:
-		return cell
+		return strconv.ParseInt(cell, 10, 64)
 	case types.TOK_TYPE_UINT64:
-		return cell
+		return strconv.ParseUint(cell, 10, 64)
 	case types.TOK_TYPE_ENUM:
-		return evm[cell].ID
+		if evm[cell] == nil {
+			return nil, fmt.Errorf("enum label %s not found", cell)
+		}
+		return evm[cell].ID, nil
 	}
-	return cell
+	return cell, nil
 }

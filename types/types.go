@@ -4,7 +4,7 @@ import "fmt"
 
 type EnumValSt struct {
 	Name  string
-	ID    string
+	ID    any
 	Notes string
 }
 
