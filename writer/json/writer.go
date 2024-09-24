@@ -49,13 +49,13 @@ func buildRowMap(m map[string]any, node *translator.Node, rowData []string, evm 
 	return m
 }
 
-func writeDataRows(wr io.Writer, data *translator.DataHolder, indent int, isLastElem bool) error {
+func writeDataRows(wr io.Writer, data translator.DataHolder, indent int, isLastElem bool) error {
 	fmt.Fprintf(wr, "%s\"data\": ", util.IndentSpace(indent))
 	rowMaps := []map[string]any{}
 	for _, rowData := range data.Data() {
-		rowMaps = append(rowMaps, buildRowMap(nil, data.ASTRoot, rowData, data.EnumValMap()))
+		rowMaps = append(rowMaps, buildRowMap(nil, data.AST(), rowData, data.EnumValMap()))
 	}
-	if b, err := json.MarshalIndent(rowMaps, util.IndentSpace(indent), "    "); err == nil {
+	if b, err := json.MarshalIndent(rowMaps, util.IndentSpace(indent), util.IndentSpace(1)); err == nil {
 		wr.Write(b)
 	} else {
 		return err
@@ -68,7 +68,7 @@ func writeDataRows(wr io.Writer, data *translator.DataHolder, indent int, isLast
 	return nil
 }
 
-func WriteToFile(data *translator.DataHolder, outDir string) error {
+func WriteToFile(data translator.DataHolder, outDir string) error {
 	wr := &strings.Builder{}
 	indent := 0
 

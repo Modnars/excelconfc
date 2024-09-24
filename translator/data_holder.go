@@ -2,31 +2,38 @@ package translator
 
 import "git.woa.com/modnarshen/excelconfc/types"
 
-type DataHolder struct {
+type DataHolder interface {
 	types.DataHolder
-	ASTRoot *Node
+	AST() *Node
 }
 
-func (dh *DataHolder) GetAST() *Node {
-	return dh.ASTRoot
+type mDataHolder struct {
+	types.DataHolder
+	astRoot *Node
 }
 
-type NewDataHolderOption func(*DataHolder) error
+func (dh *mDataHolder) AST() *Node {
+	return dh.astRoot
+}
+
+var _ DataHolder = (*mDataHolder)(nil)
+
+type NewDataHolderOption func(*mDataHolder) error
 
 func WithXlsxData(xlsxData types.DataHolder) NewDataHolderOption {
-	return func(dh *DataHolder) error {
+	return func(dh *mDataHolder) error {
 		dh.DataHolder = xlsxData
 		if nodes, err := TransToNodes(xlsxData.Headers()); err != nil {
 			return err
 		} else {
-			dh.ASTRoot = BuildNodeTree(nodes)
+			dh.astRoot = BuildNodeTree(nodes)
 		}
 		return nil
 	}
 }
 
-func NewDataHolder(options ...NewDataHolderOption) (*DataHolder, error) {
-	dataHolder := &DataHolder{}
+func NewDataHolder(options ...NewDataHolderOption) (DataHolder, error) {
+	dataHolder := &mDataHolder{}
 	for _, option := range options {
 		if err := option(dataHolder); err != nil {
 			return nil, err

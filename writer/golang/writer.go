@@ -192,10 +192,10 @@ func collectStructFields(field writer.Field, structFields []writer.Field) []writ
 	return structFields
 }
 
-func writeStruct(wr io.Writer, data *translator.DataHolder, sheetName string) error {
+func writeStruct(wr io.Writer, data translator.DataHolder, sheetName string) error {
 	rootNode := &translator.Node{
 		Name:     sheetName,
-		SubNodes: data.ASTRoot.SubNodes,
+		SubNodes: data.AST().SubNodes,
 		Type:     types.TOK_TYPE_ROOT_STRUCT,
 		DataType: sheetName,
 	}
@@ -227,7 +227,7 @@ func writeStruct(wr io.Writer, data *translator.DataHolder, sheetName string) er
 	return nil
 }
 
-func outputSrcFile(data *translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
+func outputSrcFile(data translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	wr := &strings.Builder{}
 
 	if err := writeFileComments(wr, data.FileName(), data.SheetName()); err != nil {
@@ -255,7 +255,7 @@ func outputSrcFile(data *translator.DataHolder, goPackage string, outDir string,
 	return writer.WriteToFile(outDir, data.SheetName(), outFileSuffix, outBytes)
 }
 
-func WriteToFile(data *translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
+func WriteToFile(data translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	if err := outputDefFile(goPackage, outDir); err != nil {
 		return fmt.Errorf("generate go def file failed -> %w", err)
 	}

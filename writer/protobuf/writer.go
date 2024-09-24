@@ -51,10 +51,10 @@ func collectMessages(field writer.Field, messages []writer.Field) []writer.Field
 	return messages
 }
 
-func writeMessage(wr io.Writer, data *translator.DataHolder, rootMsgName string) error {
+func writeMessage(wr io.Writer, data translator.DataHolder, rootMsgName string) error {
 	rootMessage := &translator.Node{
 		Name:     rootMsgName,
-		SubNodes: data.ASTRoot.SubNodes,
+		SubNodes: data.AST().SubNodes,
 		Type:     types.TOK_TYPE_ROOT_STRUCT,
 		DataType: rootMsgName,
 	}
@@ -101,7 +101,7 @@ func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 	return nil
 }
 
-func WriteToFile(data *translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
+func WriteToFile(data translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	wr := &strings.Builder{}
 
 	if err := writeFileComment(wr, data.FileName(), data.SheetName()); err != nil {
