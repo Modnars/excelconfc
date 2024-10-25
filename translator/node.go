@@ -19,10 +19,17 @@ type Node struct {
 	SubNodes []*Node // 子字段（用于嵌套定义）
 
 	structLabel string
+	lexVal      string
+	GroupFlag   int
 }
 
-func (n *Node) AddSubNode(subNode *Node) {
+func (n *Node) AddSubNode(subNode *Node) error {
 	n.SubNodes = append(n.SubNodes, subNode)
+	return nil
+}
+
+func (n *Node) String() string {
+	return n.lexVal
 }
 
 type NodeOption = func(node *Node)
@@ -120,7 +127,7 @@ func NewNode(options ...NodeOption) *Node {
 
 func TransToNodes(headers [][]string) ([]*Node, error) {
 	if len(headers) < rules.ROW_HEAD_MAX {
-		return nil, fmt.Errorf("invalid line count in headers")
+		return nil, fmt.Errorf("invalid line count in headers|rowNum:%d", len(headers))
 	}
 	nodes := []*Node{}
 	for colIdx := range headers[rules.ROW_IDX_NAME] {
@@ -229,4 +236,8 @@ func BuildNodeTree(nodes []*Node) *Node {
 		}
 	}
 	return root
+}
+
+func (n *Node) LexVal() string {
+	return n.lexVal
 }

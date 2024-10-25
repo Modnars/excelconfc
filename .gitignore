@@ -12,6 +12,9 @@
 
 !trpc-cli-test.json
 
+# Documents
+!docs/*
+
 # Test data
 testdata
 

@@ -3,6 +3,7 @@ package compiler
 import (
 	"fmt"
 
+	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 	"git.woa.com/modnarshen/excelconfc/reader/xlsx"
 	"git.woa.com/modnarshen/excelconfc/translator"
 	"git.woa.com/modnarshen/excelconfc/writer/golang"
@@ -56,6 +57,16 @@ func (c *compiler) Compile() error {
 	if err != nil {
 		return fmt.Errorf("NewDataHolder failed|file:%s|sheet:%s -> %w", c.filePath, c.sheetName, err)
 	}
+	nodes, err := translator.TransToASTNodes(xlsxData.Headers())
+	if err != nil {
+		return fmt.Errorf("exec NewTransToNodes failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
+	}
+	lrParser := mcc.NewLRParser(mcc.NewGrammar(mcc.Productions))
+	astRoot, err := lrParser.BuildAST(nodes, OnReduce)
+	if err != nil {
+		return fmt.Errorf("exec BuildAST failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
+	}
+	mcc.PrintTree(astRoot, 0)
 	if err := protobuf.WriteToFile(dataHolder, c.goPackage, c.outDir, c.addEnum); err != nil {
 		return fmt.Errorf("exec WriteToProto failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
 	}

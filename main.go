@@ -51,4 +51,7 @@ func main() {
 	).Compile(); err != nil {
 		util.LogError(err.Error())
 	}
+
+	// lrParser := mcc.NewLRParser(mcc.NewGrammar(mcc.Productions))
+	// lrParser.AnalyzeString(bufio.NewReader(os.Stdin))
 }
