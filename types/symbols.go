@@ -11,6 +11,7 @@ const (
 
 type Mark = string
 type Token = string
+type LexMark = string
 
 const (
 	MARK_TYPE_BOOL   Mark = "bool"
@@ -54,20 +55,27 @@ const (
 	TOK_VAL_TRUE  Token = "true"
 	TOK_VAL_FALSE Token = "false"
 
-	MID_NODE_FIELDS        Token = "Node@FIELDS"
-	MID_NODE_ADT           Token = "Node@ADT"
-	MID_NODE_BDT           Token = "Node@BDT"
-	MID_NODE_ARRAY         Token = "Node@ARRAY"
-	MID_NODE_VEC           Token = "Node@VEC"
-	MID_NODE_STRUCT        Token = "Node@STRUCT"
-	MID_NODE_VEC_ADT_ITEMS Token = "Node@VEC_ADT_ITEMS"
-	MID_NODE_VEC_BDT_ITEMS Token = "Node@VEC_BDT_ITEMS"
+	MID_NODE_FIELDS        LexMark = "Node@FIELDS"
+	MID_NODE_ADT           LexMark = "Node@ADT"
+	MID_NODE_BDT           LexMark = "Node@BDT"
+	MID_NODE_ARRAY         LexMark = "Node@ARRAY"
+	MID_NODE_VEC           LexMark = "Node@VEC"
+	MID_NODE_STRUCT        LexMark = "Node@STRUCT"
+	MID_NODE_VEC_ADT_ITEMS LexMark = "Node@VEC_ADT_ITEMS"
+	MID_NODE_VEC_BDT_ITEMS LexMark = "Node@VEC_BDT_ITEMS"
+
+	LEX_BOOL   LexMark = "bool"
+	LEX_ENUM   LexMark = "enum"
+	LEX_INT    LexMark = "int"
+	LEX_STRING LexMark = "string"
 )
 
 var (
 	_BOOL_TYPES   = util.NewSet(TOK_TYPE_BOOL)
 	_INT_TYPES    = util.NewSet(TOK_TYPE_INT32, TOK_TYPE_INT64, TOK_TYPE_UINT32, TOK_TYPE_UINT64)
 	_STRING_TYPES = util.NewSet(TOK_TYPE_STRING)
+
+	_LEX_BDT = util.NewSet(LEX_BOOL, LEX_ENUM, LEX_INT, LEX_STRING)
 )
 
 func IsBasicType(tok Token) bool {
@@ -84,4 +92,8 @@ func IsStringType(tok Token) bool {
 
 func IsRealStruct(tok Token) bool {
 	return tok == TOK_TYPE_STRUCT
+}
+
+func IsBDT(lexVal LexMark) bool {
+	return _LEX_BDT.Contains(lexVal)
 }

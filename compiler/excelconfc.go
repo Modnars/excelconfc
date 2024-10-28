@@ -14,6 +14,7 @@ import (
 
 var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []mcc.ASTNode) ([]mcc.ASTNode, error) {
 	stackTop := len(nodeStack)
+
 	switch production.Number {
 	case 1: // START -> FIELDS
 
@@ -25,50 +26,34 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_FIELDS)
 		nodeStack = append(nodeStack, newASTNode)
 
-	case 4: // FIELD -> BDT
+	case 4, 5, 6, 7: // FIELD -> BDT | ARRAY | STRUCT | VEC
+		// use the leaf node as the filed node directly
 
-	case 5: // FIELD -> ARRAY
-
-	case 6: // FIELD -> STRUCT
-
-	case 7: // FIELD -> VEC
-
-	case 8, 9, 10, 11: // BDT -> int/float/string/enum
-		subNode := nodeStack[stackTop-1]
-		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_BDT)
-		newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
-		newASTNode.AddSubNode(subNode)
-		nodeStack[stackTop-1] = newASTNode
+	case 8, 9, 10, 11: // BDT -> int | float | string | enum
+		// use the leaf node as the filed node directly
 
 	case 12: // ARRAY -> array
-		subNode := nodeStack[stackTop-1]
-		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_ARRAY)
-		newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
-		newASTNode.AddSubNode(subNode)
-		nodeStack = nodeStack[:stackTop-1]
-		nodeStack = append(nodeStack, newASTNode)
+		// subNode := nodeStack[stackTop-1]
+		// newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_ARRAY)
+		// newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
+		// newASTNode.AddSubNode(subNode)
+		// nodeStack = nodeStack[:stackTop-1]
+		// nodeStack = append(nodeStack, newASTNode)
 
 	case 13: // STRUCT -> ADT { FIELDS }
-		subNode := nodeStack[stackTop-4]
-		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_STRUCT)
-		newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
-		nodeStack[stackTop-2].SetName(subNode.Name()).SetType(subNode.Type())
-		newASTNode.AddSubNode(subNode).AddSubNode(nodeStack[stackTop-2])
+		subNode := nodeStack[stackTop-2]
+		subNode.SetName(nodeStack[stackTop-4].Name()).SetType(nodeStack[stackTop-4].Type())
 		nodeStack = nodeStack[:stackTop-len(production.Right)]
-		nodeStack = append(nodeStack, newASTNode)
+		nodeStack = append(nodeStack, subNode)
 
 	case 14: // VEC -> ADT VEC_ADT_ITEMS
 		subNode := nodeStack[stackTop-2]
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC)
 		newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
-		newASTNode.AddSubNode(subNode)
-		nodeStack[stackTop-1].SetName(subNode.Name()).SetType(subNode.Type())
 		for i, ssubNode := range nodeStack[stackTop-1].SubNodes() {
-			if ssubNode.LexVal() == types.MID_NODE_FIELDS && ssubNode.Type() == "" {
-				ssubNode.SetName(fmt.Sprintf("%s[%d]", subNode.Name(), i)).SetType(subNode.Type())
-			}
+			ssubNode.SetName(fmt.Sprintf("%s[%d]", subNode.Name(), i)).SetType(subNode.Type())
+			newASTNode.AddSubNode(ssubNode)
 		}
-		newASTNode.AddSubNode(nodeStack[stackTop-1])
 		nodeStack = nodeStack[:stackTop-len(production.Right)]
 		nodeStack = append(nodeStack, newASTNode)
 
@@ -113,12 +98,13 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 		nodeStack = nodeStack[:stackTop-1]
 
 	case 22: // VEC_BDT_ITEMS -> []
-		subNode := nodeStack[stackTop-1]
+		top := nodeStack[stackTop-1]
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC_BDT_ITEMS)
-		newASTNode.SetType(subNode.Type())
-		newASTNode.AddSubNode(subNode)
+		newASTNode.SetType(top.Type())
+		newASTNode.AddSubNode(top)
 		nodeStack[stackTop-1] = newASTNode
 
 	}
+
 	return nodeStack, nil
 }
