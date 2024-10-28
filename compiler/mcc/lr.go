@@ -90,7 +90,7 @@ func (p *LRParser) BuildAST(input []ASTNode, onReduce ReduceCallback) (ASTNode, 
 	stateStack.Push(0)
 	var err error
 	idx := 0
-	input = append(input, NewASTNode(EndMark))
+	input = append(input, NewMiddleASTNode(EndMark))
 	fmt.Println(input)
 	for idx < len(input) {
 		val := 0

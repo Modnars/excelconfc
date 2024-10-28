@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/code/template"
-	"git.woa.com/modnarshen/excelconfc/translator"
+	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
 	"git.woa.com/modnarshen/excelconfc/writer"
@@ -39,50 +39,38 @@ func writeDeclaration(wr io.Writer, goPackage string) error {
 	return nil
 }
 
-func collectMessages(field writer.Field, messages []writer.Field) []writer.Field {
-	if field.IsStructDecl() || field.IsVectorDecl() {
-		for _, subField := range field.SubNodes {
-			messages = collectMessages(subField, messages)
-		}
-		if field.IsStructDecl() {
-			messages = append(messages, field)
-		}
+func collectMessages(astNode mcc.ASTNode, result []mcc.ASTNode) []mcc.ASTNode {
+	for _, subNode := range astNode.SubNodes() {
+		result = collectMessages(subNode, result)
 	}
-	return messages
+	if astNode.LexVal() == types.MID_NODE_FIELDS && astNode.Type() != types.TOK_NONE {
+		result = append(result, astNode)
+	}
+	return result
 }
 
-func writeMessage(wr io.Writer, data translator.DataHolder, rootMsgName string) error {
-	rootMessage := &translator.Node{
-		Name:     rootMsgName,
-		SubNodes: data.AST().SubNodes,
-		Type:     types.TOK_TYPE_ROOT_STRUCT,
-		DataType: rootMsgName,
-	}
-	messages := collectMessages(rootMessage, nil)
+func writeMessage(wr io.Writer, rootNode mcc.ASTNode) error {
+	messages := collectMessages(rootNode, nil)
 	indent := 0
 	doneMsgSet := util.NewSet[string]()
 	for _, message := range messages {
-		if doneMsgSet.Contains(message.DataType) {
+		if doneMsgSet.Contains(message.Type()) {
 			continue
 		}
-		fmt.Fprintf(wr, "\nmessage %s {\n", message.DataType)
+		fmt.Fprintf(wr, "\nmessage %s {\n", message.Type())
 		indent++
 		msgFieldNo := 0
-		for _, subMsg := range message.SubNodes {
+		for _, field := range message.SubNodes() {
 			msgFieldNo++
-			if subMsg.IsVectorDecl() {
-				fmt.Fprintf(wr, "%srepeated %s %s = %d;\n", util.IndentSpace(indent), subMsg.DataType, subMsg.Name, msgFieldNo)
-			} else if subMsg.IsStructDecl() {
-				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), subMsg.DataType, subMsg.Name, msgFieldNo)
-			} else if subMsg.IsEnum() {
-				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), subMsg.DataType, subMsg.Name, msgFieldNo)
+			if field.LexVal() == "Node@VEC" {
+				fmt.Fprintf(wr, "%srepeated %s %s = %d;\n", util.IndentSpace(indent), field.Type(), field.Name(), msgFieldNo)
 			} else {
-				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), subMsg.DataType, subMsg.Name, msgFieldNo)
+				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), field.Type(), field.Name(), msgFieldNo)
 			}
 		}
 		indent--
 		fmt.Fprintf(wr, "}\n")
-		doneMsgSet.Add(message.DataType)
+		doneMsgSet.Add(message.Type())
 	}
 	return nil
 }
@@ -101,7 +89,7 @@ func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 	return nil
 }
 
-func WriteToFile(data translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
+func WriteToFile(data types.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	wr := &strings.Builder{}
 
 	if err := writeFileComment(wr, data.FileName(), data.SheetName()); err != nil {
@@ -115,7 +103,7 @@ func WriteToFile(data translator.DataHolder, goPackage string, outDir string, ad
 			return fmt.Errorf("generate proto message failed|file:%s|sheet:%s|enumTypes:{%+v} -> %w", data.FileName(), data.SheetName(), data.EnumTypes(), err)
 		}
 	}
-	if err := writeMessage(wr, data, data.SheetName()); err != nil {
+	if err := writeMessage(wr, data.AST()); err != nil {
 		return fmt.Errorf("generate proto message failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
 

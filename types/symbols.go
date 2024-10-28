@@ -31,6 +31,8 @@ const (
 )
 
 const (
+	TOK_NONE = ""
+
 	TOK_LF_SQ_BRACKET Token = "[" // left square bracket
 	TOK_RG_SQ_BRACKET Token = "]" // right square bracket
 	TOK_LF_CR_BRACKET Token = "{" // left curly bracket
@@ -51,6 +53,15 @@ const (
 
 	TOK_VAL_TRUE  Token = "true"
 	TOK_VAL_FALSE Token = "false"
+
+	MID_NODE_FIELDS        Token = "Node@FIELDS"
+	MID_NODE_ADT           Token = "Node@ADT"
+	MID_NODE_BDT           Token = "Node@BDT"
+	MID_NODE_ARRAY         Token = "Node@ARRAY"
+	MID_NODE_VEC           Token = "Node@VEC"
+	MID_NODE_STRUCT        Token = "Node@STRUCT"
+	MID_NODE_VEC_ADT_ITEMS Token = "Node@VEC_ADT_ITEMS"
+	MID_NODE_VEC_BDT_ITEMS Token = "Node@VEC_BDT_ITEMS"
 )
 
 var (

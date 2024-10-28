@@ -25,8 +25,7 @@ func NewASTNodes(name string, fieldType string, desc string, colIdx int) []mcc.A
 		groupFlag = groupFlag | 0b10
 	}
 	if name == "[]" {
-		// res = append(res, &Node{Name: "", lexVal: "[]"})
-		res = append(res, mcc.NewASTNode("[]"))
+		res = append(res, mcc.NewASTNode("[]", name, fieldType, colIdx))
 	} else {
 		re := regexp.MustCompile(`(\[|\]|\{|\})`)
 
@@ -43,12 +42,10 @@ func NewASTNodes(name string, fieldType string, desc string, colIdx int) []mcc.A
 				} else if desc == "E" {
 					lexVal = "enum"
 				}
-				// res = append(res, &Node{Name: part, lexVal: lexVal, ColIdx: colIdx, GroupFlag: groupFlag})
-				res = append(res, mcc.NewASTNode(lexVal))
+				res = append(res, mcc.NewASTNode(lexVal, part, fieldType, colIdx))
 			}
 			if i < len(matches) {
-				// res = append(res, &Node{Name: matches[i], lexVal: matches[i], ColIdx: colIdx, GroupFlag: groupFlag})
-				res = append(res, mcc.NewASTNode(matches[i]))
+				res = append(res, mcc.NewASTNode(matches[i], matches[i], "", colIdx))
 			}
 		}
 	}

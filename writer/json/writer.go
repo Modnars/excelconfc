@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/code/template"
+	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 	"git.woa.com/modnarshen/excelconfc/translator"
 	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
@@ -17,43 +18,51 @@ const (
 	outFileSuffix = ".ec.json"
 )
 
-// 按照 AST 树结构生成单行 json 数据映射
-func buildRowMap(m map[string]any, node *translator.Node, rowData []string, evm types.EVM) map[string]any {
-	if len(node.SubNodes) > 0 {
-		if node.IsVectorDecl() {
-			vec := []any{}
-			for _, subNode := range node.SubNodes {
-				vec = append(vec, buildRowMap(make(map[string]any), subNode, rowData, evm))
+func buildLineData(astNode mcc.ASTNode, rowData []string, evm types.EVM) map[string]any {
+	if astNode.LexVal() != types.MID_NODE_FIELDS {
+		return nil
+	}
+
+	result := make(map[string]any)
+	for _, subNode := range astNode.SubNodes() {
+		if subNode.LexVal() == "Node@VEC" {
+			for _, ssubNode := range subNode.SubNodes() {
+				if ssubNode.LexVal() == types.MID_NODE_VEC_ADT_ITEMS {
+					vec := []any{}
+					for _, sssubNode := range ssubNode.SubNodes() {
+						vec = append(vec, buildLineData(sssubNode, rowData, evm))
+					}
+					result[ssubNode.Name()] = vec
+				}
 			}
-			m[node.Name] = vec
-		} else if node.IsStructDecl() {
-			subM := make(map[string]any)
-			for _, subNode := range node.SubNodes {
-				subM = buildRowMap(subM, subNode, rowData, evm)
+		} else if subNode.LexVal() == "Node@STRUCT" {
+			for _, ssubNode := range subNode.SubNodes() {
+				if ssubNode.LexVal() != types.MID_NODE_FIELDS {
+					continue
+				}
+				result[subNode.Name()] = buildLineData(ssubNode, rowData, evm)
+				break
 			}
-			if types.IsRealStruct(node.Type) {
-				m[node.Name] = subM
-			} else { // 如果是 VecStruct 或 RootSruct，其本身不是一个有意义的结点，其子结点才是有意义的
-				return subM
+		} else if subNode.LexVal() == "Node@BDT" {
+			ssubNode := subNode.SubNodes()[0]
+			if ssubNode.ColIdx() >= len(rowData) {
+				continue
 			}
-		}
-	} else {
-		if node.ColIdx < len(rowData) {
-			if val, err := CellValue(node, rowData[node.ColIdx], evm); err != nil {
-				util.LogError("Wrong CellValue|colIdx:%d", node.ColIdx)
+			if val, err := CellValue(ssubNode, rowData[ssubNode.ColIdx()], evm); err != nil {
+				util.LogError("Wrong CellValue|colIdx:%d", ssubNode.ColIdx())
 			} else {
-				m[node.Name] = val
+				result[ssubNode.Name()] = val
 			}
 		}
 	}
-	return m
+	return result
 }
 
 func writeDataRows(wr io.Writer, data translator.DataHolder, indent int, isLastElem bool) error {
 	fmt.Fprintf(wr, "%s\"data\": ", util.IndentSpace(indent))
 	rowMaps := []map[string]any{}
 	for _, rowData := range data.Data() {
-		rowMaps = append(rowMaps, buildRowMap(nil, data.AST(), rowData, data.EnumValMap()))
+		rowMaps = append(rowMaps, buildLineData(data.AST(), rowData, data.EnumValMap()))
 	}
 	if b, err := json.MarshalIndent(rowMaps, util.IndentSpace(indent), util.IndentSpace(1)); err == nil {
 		wr.Write(b)

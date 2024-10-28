@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/code/template"
+	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 	"git.woa.com/modnarshen/excelconfc/rules"
 	"git.woa.com/modnarshen/excelconfc/translator"
 	"git.woa.com/modnarshen/excelconfc/types"
@@ -180,49 +181,37 @@ func outputDefFile(goPackage string, outDir string) error {
 	return writer.WriteToFile(outDir, outGoDefFileName, outFileSuffix, outBytes)
 }
 
-func collectStructFields(field writer.Field, structFields []writer.Field) []writer.Field {
-	if field.IsStructDecl() || field.IsVectorDecl() {
-		for _, subField := range field.SubNodes {
-			structFields = collectStructFields(subField, structFields)
-		}
-		if field.IsStructDecl() {
-			structFields = append(structFields, field)
-		}
+func collectStruct(astNode mcc.ASTNode, result []mcc.ASTNode) []mcc.ASTNode {
+	for _, subNode := range astNode.SubNodes() {
+		result = collectStruct(subNode, result)
 	}
-	return structFields
+	if astNode.LexVal() == types.MID_NODE_FIELDS && astNode.Type() != types.TOK_NONE {
+		result = append(result, astNode)
+	}
+	return result
 }
 
-func writeStruct(wr io.Writer, data translator.DataHolder, sheetName string) error {
-	rootNode := &translator.Node{
-		Name:     sheetName,
-		SubNodes: data.AST().SubNodes,
-		Type:     types.TOK_TYPE_ROOT_STRUCT,
-		DataType: sheetName,
-	}
-	structFields := []writer.Field{}
+func writeStruct(wr io.Writer, data translator.DataHolder) error {
+	structFields := []mcc.ASTNode{}
 	indent := 0
-	structFields = collectStructFields(rootNode, structFields)
+	structFields = collectStruct(data.AST(), structFields)
 	doneStructSet := util.NewSet[string]()
 	for _, structField := range structFields {
-		if doneStructSet.Contains(structField.DataType) {
+		if doneStructSet.Contains(structField.Type()) {
 			continue
 		}
-		fmt.Fprintf(wr, "\ntype %s struct {\n", structField.DataType)
+		fmt.Fprintf(wr, "\ntype %s struct {\n", structField.Type())
 		indent++
-		for _, subField := range structField.SubNodes {
-			if subField.IsVectorDecl() { // repeated
-				fmt.Fprintf(wr, "%s%s []%s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType, subField.Name)
-			} else if subField.IsStructDecl() {
-				fmt.Fprintf(wr, "%s%s %s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType, subField.Name)
-			} else if subField.IsEnum() {
-				fmt.Fprintf(wr, "%s%s %s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.DataType, subField.Name)
+		for _, subField := range structField.SubNodes() {
+			if subField.LexVal() == types.MID_NODE_VEC { // repeated
+				fmt.Fprintf(wr, "%s%s []%s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name()), subField.Type(), subField.Name())
 			} else {
-				fmt.Fprintf(wr, "%s%s %s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name), subField.Type, subField.Name)
+				fmt.Fprintf(wr, "%s%s %s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name()), subField.Type(), subField.Name())
 			}
 		}
 		indent--
 		fmt.Fprintf(wr, "}\n")
-		doneStructSet.Add(structField.DataType)
+		doneStructSet.Add(structField.Type())
 	}
 	return nil
 }
@@ -241,7 +230,7 @@ func outputSrcFile(data translator.DataHolder, goPackage string, outDir string, 
 			return fmt.Errorf("generate Go enum code failed|file:%s|sheet:%s|enumTypes:%v -> %w", data.FileName(), data.SheetName(), data.EnumTypes(), err)
 		}
 	}
-	if err := writeStruct(wr, data, data.SheetName()); err != nil {
+	if err := writeStruct(wr, data); err != nil {
 		return fmt.Errorf("generate Conf Go code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
 	if err := writeStructMap(wr, data.Headers(), data.SheetName()); err != nil {

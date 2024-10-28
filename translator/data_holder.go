@@ -1,18 +1,21 @@
 package translator
 
-import "git.woa.com/modnarshen/excelconfc/types"
+import (
+	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
+	"git.woa.com/modnarshen/excelconfc/types"
+)
 
 type DataHolder interface {
 	types.DataHolder
-	AST() *Node
+	AST() mcc.ASTNode
 }
 
 type mDataHolder struct {
 	types.DataHolder
-	astRoot *Node
+	astRoot mcc.ASTNode
 }
 
-func (dh *mDataHolder) AST() *Node {
+func (dh *mDataHolder) AST() mcc.ASTNode {
 	return dh.astRoot
 }
 
@@ -23,11 +26,13 @@ type NewDataHolderOption func(*mDataHolder) error
 func WithXlsxData(xlsxData types.DataHolder) NewDataHolderOption {
 	return func(dh *mDataHolder) error {
 		dh.DataHolder = xlsxData
-		if nodes, err := TransToNodes(xlsxData.Headers()); err != nil {
-			return err
-		} else {
-			dh.astRoot = BuildNodeTree(nodes)
-		}
+		return nil
+	}
+}
+
+func WithAST(astRoot mcc.ASTNode) NewDataHolderOption {
+	return func(dh *mDataHolder) error {
+		dh.astRoot = astRoot
 		return nil
 	}
 }

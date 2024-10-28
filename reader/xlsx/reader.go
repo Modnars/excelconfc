@@ -101,13 +101,10 @@ func ReadFile(filePath string, sheetName string, enumSheetName string) (types.Da
 	if err != nil {
 		return nil, fmt.Errorf("read enum sheet failed|file:%s|sheet:%s -> %w", filepath.Base(filePath), sheetName, err)
 	}
-	return NewDataHolder(
-		WithFileName(filepath.Base(filePath)),
-		WithSheetName(sheetName),
-		WithHeaders(headers),
-		WithData(data),
-		WithEnumTypes(enumTypes),
-		WithEnumValMap(enumValMap),
+	return types.NewDataHolder(
+		filepath.Base(filePath), sheetName,
+		headers, data,
+		enumTypes, enumValMap,
 	), nil
 }
 

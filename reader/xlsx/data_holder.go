@@ -37,7 +37,7 @@ func (h *DataHolder) EnumValMap() types.EVM {
 	return h.enumValMap
 }
 
-var _ types.DataHolder = (*DataHolder)(nil)
+// var _ types.DataHolder = (*DataHolder)(nil)
 
 type NewDataHolderOption func(*DataHolder)
 

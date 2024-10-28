@@ -11,8 +11,17 @@ import (
 	"git.woa.com/modnarshen/excelconfc/util"
 )
 
+type NodeInfo interface {
+	Name() string
+	SetName(string) NodeInfo
+	Type() string
+	SetType(string) NodeInfo
+	ColIdx() int
+}
+
 type ASTNode interface {
 	Lex
+	NodeInfo
 	AddSubNode(ASTNode) error
 	SubNodes() []ASTNode
 }
@@ -20,10 +29,35 @@ type ASTNode interface {
 type astNode struct {
 	lexVal   string
 	subNodes []ASTNode
+	name     string
+	nodeType string
+	colIdx   int
 }
 
 func (n *astNode) LexVal() string {
 	return n.lexVal
+}
+
+func (n *astNode) Name() string {
+	return n.name
+}
+
+func (n *astNode) SetName(name string) NodeInfo {
+	n.name = name
+	return n
+}
+
+func (n *astNode) Type() string {
+	return n.nodeType
+}
+
+func (n *astNode) SetType(nodeType string) NodeInfo {
+	n.nodeType = nodeType
+	return n
+}
+
+func (n *astNode) ColIdx() int {
+	return n.colIdx
 }
 
 func (n *astNode) AddSubNode(subNode ASTNode) error {
@@ -36,10 +70,14 @@ func (n *astNode) SubNodes() []ASTNode {
 }
 
 func (n *astNode) String() string {
-	return n.lexVal
+	return fmt.Sprintf("%s name:%s type:%s colIdx:%d", n.lexVal, n.name, n.nodeType, n.colIdx)
 }
 
-func NewASTNode(lexVal string) ASTNode {
+func NewASTNode(lexVal string, name string, nodeType string, colIdx int) ASTNode {
+	return &astNode{lexVal: lexVal, name: name, nodeType: nodeType, colIdx: colIdx}
+}
+
+func NewMiddleASTNode(lexVal string) ASTNode {
 	return &astNode{lexVal: lexVal}
 }
 
