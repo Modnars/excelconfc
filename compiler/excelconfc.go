@@ -53,8 +53,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_STRUCT)
 		newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
 		nodeStack[stackTop-2].SetName(subNode.Name()).SetType(subNode.Type())
-		newASTNode.AddSubNode(subNode)
-		newASTNode.AddSubNode(nodeStack[stackTop-2])
+		newASTNode.AddSubNode(subNode).AddSubNode(nodeStack[stackTop-2])
 		nodeStack = nodeStack[:stackTop-len(production.Right)]
 		nodeStack = append(nodeStack, newASTNode)
 
@@ -77,8 +76,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 		subNode := nodeStack[stackTop-2]
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC)
 		newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
-		newASTNode.AddSubNode(nodeStack[stackTop-2])
-		newASTNode.AddSubNode(nodeStack[stackTop-1])
+		newASTNode.AddSubNode(nodeStack[stackTop-2]).AddSubNode(nodeStack[stackTop-1])
 		nodeStack = nodeStack[:stackTop-len(production.Right)]
 		nodeStack = append(nodeStack, newASTNode)
 

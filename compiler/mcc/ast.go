@@ -22,7 +22,7 @@ type NodeInfo interface {
 type ASTNode interface {
 	Lex
 	NodeInfo
-	AddSubNode(ASTNode) error
+	AddSubNode(ASTNode) ASTNode
 	SubNodes() []ASTNode
 }
 
@@ -60,9 +60,9 @@ func (n *astNode) ColIdx() int {
 	return n.colIdx
 }
 
-func (n *astNode) AddSubNode(subNode ASTNode) error {
+func (n *astNode) AddSubNode(subNode ASTNode) ASTNode {
 	n.subNodes = append(n.subNodes, subNode)
-	return nil
+	return n
 }
 
 func (n *astNode) SubNodes() []ASTNode {
