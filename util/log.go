@@ -7,11 +7,14 @@ import (
 var (
 	NO_COLORFUL_LOG bool
 
+	prefixTrace = "[TRACE] "
 	prefixInfo  = "[INFO] "
 	prefixError = "[ERROR] "
 
 	colorfulPrefixInfo  = "\033[32m[INFO]\033[0m "
 	colorfulPrefixError = "\033[31m[ERROR]\033[0m "
+
+	VerboseMode = false
 )
 
 func infoLogPrefix() string {
@@ -26,6 +29,14 @@ func errorLogPrefix() string {
 		return prefixError
 	}
 	return colorfulPrefixError
+}
+
+func LogTrace(format string, args ...any) {
+	if !VerboseMode {
+		return
+	}
+	log.SetPrefix(prefixTrace)
+	log.Printf(format+"\n", args...)
 }
 
 func LogInfo(format string, args ...any) {

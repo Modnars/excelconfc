@@ -91,7 +91,7 @@ func (p *LRParser) BuildAST(input []ASTNode, onReduce ReduceCallback) (ASTNode, 
 	var err error
 	idx := 0
 	input = append(input, NewMiddleASTNode(EndMark))
-	fmt.Println(input)
+	util.LogTrace("input: %v", input)
 	for idx < len(input) {
 		val := 0
 		ok := true
@@ -106,7 +106,7 @@ func (p *LRParser) BuildAST(input []ASTNode, onReduce ReduceCallback) (ASTNode, 
 			idx++
 		} else {
 			reduceProduction := p.grammar.Production(-val)
-			fmt.Printf("[REDUCE] (%d, %s) -> %d (%v)\n", stateStack.PeekOrZero(), input[idx].LexVal(), val, reduceProduction)
+			util.LogTrace("[REDUCE] (%d, %s) -> %d (%v)", stateStack.PeekOrZero(), input[idx].LexVal(), val, reduceProduction)
 			nodeStack, err = onReduce(reduceProduction, nodeStack) // call `onReduce`
 			if err != nil {
 				break
@@ -129,9 +129,7 @@ func (p *LRParser) BuildAST(input []ASTNode, onReduce ReduceCallback) (ASTNode, 
 		}
 	}
 	if err != nil {
-		util.LogError("ANALYZE FAILED : %s", err.Error())
-	} else {
-		util.LogInfo("ACCEPT")
+		return nil, fmt.Errorf("build AST failed|remain:%v|err:%w", input[idx:], err)
 	}
 	if len(nodeStack) != 1 {
 		return nil, fmt.Errorf("build AST failed|stackLen:%d", len(nodeStack))

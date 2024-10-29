@@ -3,6 +3,7 @@ package json
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 	"git.woa.com/modnarshen/excelconfc/translator"
@@ -11,15 +12,8 @@ import (
 
 type Field = translator.Node
 
-func CellValue(astNode mcc.ASTNode, cell string, evm types.EVM) (any, error) {
-	if astNode.LexVal() == "enum" {
-		if evm[cell] == nil {
-			return nil, fmt.Errorf("enum label %s not found", cell)
-		}
-		return evm[cell].ID, nil
-	}
-
-	switch astNode.Type() {
+func extractCellVal(cell string, asType string) (any, error) {
+	switch asType {
 	case types.TOK_TYPE_STRING, types.TOK_TYPE_DATETIME:
 		return cell, nil
 	case types.TOK_TYPE_BOOL:
@@ -38,4 +32,25 @@ func CellValue(astNode mcc.ASTNode, cell string, evm types.EVM) (any, error) {
 		return strconv.ParseUint(cell, 10, 64)
 	}
 	return cell, nil
+}
+
+func CellValue(astNode mcc.ASTNode, cell string, evm types.EVM) (any, error) {
+	if astNode.LexVal() == types.LEX_ENUM {
+		if evm[cell] == nil {
+			return nil, fmt.Errorf("enum label %s not found", cell)
+		}
+		return evm[cell].ID, nil
+	} else if astNode.LexVal() == types.LEX_ARRAY {
+		parts := strings.Split(cell, ";")
+		result := []any{}
+		for _, part := range parts {
+			if val, err := extractCellVal(part, astNode.Type()); err != nil {
+				return nil, err
+			} else {
+				result = append(result, val)
+			}
+		}
+		return result, nil
+	}
+	return extractCellVal(cell, astNode.Type())
 }

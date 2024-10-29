@@ -27,6 +27,7 @@ func main() {
 	addEnum := flag.Bool("add_enum", false, "add the enumeration values defined in the enumeration table to the current table output")
 	flag.BoolVar(&rules.DEBUG_MODE, "debug", false, "DEBUG mode allows invalid output")
 	flag.BoolVar(&util.NO_COLORFUL_LOG, "ncl", false, "`ncl` makes no colorful log output")
+	flag.BoolVar(&util.VerboseMode, "verbose", false, "verbose mode show more debug information")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n", os.Args[0])

@@ -66,8 +66,10 @@ const (
 
 	LEX_BOOL   LexMark = "bool"
 	LEX_ENUM   LexMark = "enum"
+	LEX_ARRAY  LexMark = "array"
 	LEX_INT    LexMark = "int"
 	LEX_STRING LexMark = "string"
+	LEX_ID     LexMark = "id"
 )
 
 var (
@@ -94,6 +96,6 @@ func IsRealStruct(tok Token) bool {
 	return tok == TOK_TYPE_STRUCT
 }
 
-func IsBDT(lexVal LexMark) bool {
-	return _LEX_BDT.Contains(lexVal)
+func IsRepeatedLex(lexVal LexMark) bool {
+	return lexVal == MID_NODE_VEC || lexVal == LEX_ARRAY
 }

@@ -14,6 +14,28 @@ import (
 	"git.woa.com/modnarshen/excelconfc/types"
 )
 
+func getLexVal(rawType, desc string) string {
+	if !types.IsBasicType(rawType) {
+		if desc == "E" {
+			return types.LEX_ENUM
+		}
+		return types.LEX_ID
+	}
+	if desc == "E" && !types.IsBasicType(rawType) {
+		return types.LEX_ENUM
+	}
+	if desc == types.MARK_DESC_ARRAY && types.IsBasicType(rawType) {
+		return types.LEX_ARRAY
+	}
+	if types.IsIntType(rawType) {
+		return types.LEX_INT
+	}
+	if types.IsStringType(rawType) {
+		return types.LEX_STRING
+	}
+	return types.TOK_NONE
+}
+
 func NewASTNodes(name string, fieldType string, desc string, colIdx int) []mcc.ASTNode {
 	res := []mcc.ASTNode{}
 	groupFlag := 0
@@ -34,14 +56,14 @@ func NewASTNodes(name string, fieldType string, desc string, colIdx int) []mcc.A
 		matches := re.FindAllString(name, -1)
 		for i, part := range parts {
 			if part != "" {
-				lexVal := "id"
-				if types.IsIntType(fieldType) {
-					lexVal = "int"
-				} else if types.IsStringType(fieldType) {
-					lexVal = "string"
-				} else if desc == "E" {
-					lexVal = "enum"
-				}
+				lexVal := getLexVal(fieldType, desc)
+				// if types.IsIntType(fieldType) {
+				// 	lexVal = "int"
+				// } else if types.IsStringType(fieldType) {
+				// 	lexVal = "string"
+				// } else if desc == "E" {
+				// 	lexVal = "enum"
+				// }
 				res = append(res, mcc.NewASTNode(lexVal, part, fieldType, colIdx))
 			}
 			if i < len(matches) {

@@ -33,12 +33,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 		// use the leaf node as the filed node directly
 
 	case 12: // ARRAY -> array
-		// subNode := nodeStack[stackTop-1]
-		// newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_ARRAY)
-		// newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
-		// newASTNode.AddSubNode(subNode)
-		// nodeStack = nodeStack[:stackTop-1]
-		// nodeStack = append(nodeStack, newASTNode)
+		// treat the array leaf node as a `BDT`
 
 	case 13: // STRUCT -> ADT { FIELDS }
 		subNode := nodeStack[stackTop-2]
@@ -61,7 +56,10 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 		subNode := nodeStack[stackTop-2]
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC)
 		newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
-		newASTNode.AddSubNode(nodeStack[stackTop-2]).AddSubNode(nodeStack[stackTop-1])
+		for i, ssubNode := range nodeStack[stackTop-1].SubNodes() {
+			ssubNode.SetName(fmt.Sprintf("%s[%d]", subNode.Name(), i)).SetType(subNode.Type())
+			newASTNode.AddSubNode(ssubNode)
+		}
 		nodeStack = nodeStack[:stackTop-len(production.Right)]
 		nodeStack = append(nodeStack, newASTNode)
 
@@ -84,20 +82,11 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 		nodeStack = nodeStack[:stackTop-len(production.Right)]
 		nodeStack = append(nodeStack, newASTNode)
 
-	case 19: // VEC_BDT_ITEMS -> VEC_BDT_ITEMS [ VEC_BDT_ITEMS ]
-		nodeStack[stackTop-4].AddSubNode(nodeStack[stackTop-2])
-		nodeStack = nodeStack[:stackTop-3]
-
-	case 20: // VEC_BDT_ITEMS -> [ VEC_BDT_ITEMS ]
-		top := nodeStack[stackTop-2]
-		nodeStack = nodeStack[:stackTop-len(production.Right)]
-		nodeStack = append(nodeStack, top)
-
-	case 21: // VEC_BDT_ITEMS -> VEC_BDT_ITEMS []
+	case 19: // VEC_BDT_ITEMS -> VEC_BDT_ITEMS []
 		nodeStack[stackTop-2].AddSubNode(nodeStack[stackTop-1])
 		nodeStack = nodeStack[:stackTop-1]
 
-	case 22: // VEC_BDT_ITEMS -> []
+	case 20: // VEC_BDT_ITEMS -> []
 		top := nodeStack[stackTop-1]
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC_BDT_ITEMS)
 		newASTNode.SetType(top.Type())

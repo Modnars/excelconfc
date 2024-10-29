@@ -6,6 +6,7 @@ import (
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 	"git.woa.com/modnarshen/excelconfc/reader/xlsx"
 	"git.woa.com/modnarshen/excelconfc/translator"
+	"git.woa.com/modnarshen/excelconfc/util"
 	"git.woa.com/modnarshen/excelconfc/writer/golang"
 	"git.woa.com/modnarshen/excelconfc/writer/json"
 	"git.woa.com/modnarshen/excelconfc/writer/protobuf"
@@ -22,9 +23,10 @@ type compiler struct {
 	outDir    string
 	goPackage string
 	addEnum   bool
+	parser    mcc.Parser
 }
 
-func newCompilerWithOptions(options *Options) Compiler {
+func newCompilerWithOptions(options *Options) *compiler {
 	if options == nil {
 		return nil
 	}
@@ -43,7 +45,9 @@ func New(options ...Option) Compiler {
 	for _, o := range options {
 		o(&opt)
 	}
-	return newCompilerWithOptions(&opt)
+	newCompiler := newCompilerWithOptions(&opt)
+	newCompiler.parser = mcc.NewLRParser(mcc.NewGrammar(mcc.Productions))
+	return newCompiler
 }
 
 func (c *compiler) Compile() error {
@@ -56,14 +60,16 @@ func (c *compiler) Compile() error {
 	if err != nil {
 		return fmt.Errorf("exec NewTransToNodes failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
 	}
-	lrParser := mcc.NewLRParser(mcc.NewGrammar(mcc.Productions))
-	astRoot, err := lrParser.BuildAST(nodes, OnReduce)
+	astRoot, err := c.parser.BuildAST(nodes, OnReduce)
 	if err != nil {
 		return fmt.Errorf("exec BuildAST failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
 	}
 	astRoot.SetType(c.sheetName)
 	xlsxData.SetAST(astRoot)
-	mcc.PrintTree(astRoot, 0)
+	if util.VerboseMode {
+		mcc.PrintTree(astRoot, 0)
+	}
+
 	if err := protobuf.WriteToFile(xlsxData, c.goPackage, c.outDir, c.addEnum); err != nil {
 		return fmt.Errorf("exec WriteToProto failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
 	}
@@ -73,5 +79,6 @@ func (c *compiler) Compile() error {
 	if err := json.WriteToFile(xlsxData, c.outDir); err != nil {
 		return fmt.Errorf("exec json.WriteToFile failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
 	}
+
 	return nil
 }
