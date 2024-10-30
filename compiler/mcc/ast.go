@@ -17,6 +17,8 @@ type NodeInfo interface {
 	Type() string
 	SetType(string) NodeInfo
 	ColIdx() int
+	GroupFlag() uint8
+	SetGroupFlag(uint8) NodeInfo
 }
 
 type ASTNode interface {
@@ -27,11 +29,12 @@ type ASTNode interface {
 }
 
 type astNode struct {
-	lexVal   string
-	subNodes []ASTNode
-	name     string
-	nodeType string
-	colIdx   int
+	lexVal    string
+	subNodes  []ASTNode
+	name      string
+	nodeType  string
+	colIdx    int
+	groupFlag uint8
 }
 
 func (n *astNode) LexVal() string {
@@ -60,6 +63,15 @@ func (n *astNode) ColIdx() int {
 	return n.colIdx
 }
 
+func (n *astNode) GroupFlag() uint8 {
+	return n.groupFlag
+}
+
+func (n *astNode) SetGroupFlag(groupFlag uint8) NodeInfo {
+	n.groupFlag = groupFlag
+	return n
+}
+
 func (n *astNode) AddSubNode(subNode ASTNode) ASTNode {
 	n.subNodes = append(n.subNodes, subNode)
 	return n
@@ -70,23 +82,25 @@ func (n *astNode) SubNodes() []ASTNode {
 }
 
 func (n *astNode) String() string {
-	return fmt.Sprintf("%s name:%s type:%s colIdx:%d", n.lexVal, n.name, n.nodeType, n.colIdx)
+	return fmt.Sprintf("%s name:%s type:%s colIdx:%d group:%b", n.lexVal, n.name, n.nodeType, n.colIdx, n.groupFlag)
 }
 
-func NewASTNode(lexVal string, name string, nodeType string, colIdx int) ASTNode {
-	return &astNode{lexVal: lexVal, name: name, nodeType: nodeType, colIdx: colIdx}
+func NewASTNode(lexVal string, name string, nodeType string, colIdx int, groupFlag uint8) ASTNode {
+	return &astNode{lexVal: lexVal, name: name, nodeType: nodeType, colIdx: colIdx, groupFlag: groupFlag}
 }
 
 func NewMiddleASTNode(lexVal string) ASTNode {
 	return &astNode{lexVal: lexVal}
 }
 
-var _ ASTNode = (*astNode)(nil)
+var (
+	InputEndASTNode ASTNode = &astNode{lexVal: EndMark}
+)
 
-func PrintTree(node ASTNode, depth int) {
+func PrintAST(node ASTNode, depth int) {
 	fmt.Printf("%s%+v\n", util.IndentSpace(depth), node)
 	for _, subNode := range node.SubNodes() {
-		PrintTree(subNode, depth+1)
+		PrintAST(subNode, depth+1)
 	}
 }
 

@@ -9,7 +9,6 @@ import (
 	"git.woa.com/modnarshen/excelconfc/code/template"
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 	"git.woa.com/modnarshen/excelconfc/rules"
-	"git.woa.com/modnarshen/excelconfc/translator"
 	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
 	"git.woa.com/modnarshen/excelconfc/writer"
@@ -191,7 +190,7 @@ func collectStruct(astNode mcc.ASTNode, result []mcc.ASTNode) []mcc.ASTNode {
 	return result
 }
 
-func writeStruct(wr io.Writer, data translator.DataHolder) error {
+func writeStruct(wr io.Writer, data types.DataHolder) error {
 	structFields := []mcc.ASTNode{}
 	indent := 0
 	structFields = collectStruct(data.AST(), structFields)
@@ -216,7 +215,7 @@ func writeStruct(wr io.Writer, data translator.DataHolder) error {
 	return nil
 }
 
-func outputSrcFile(data translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
+func outputSrcFile(data types.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	wr := &strings.Builder{}
 
 	if err := writeFileComments(wr, data.FileName(), data.SheetName()); err != nil {
@@ -244,7 +243,7 @@ func outputSrcFile(data translator.DataHolder, goPackage string, outDir string, 
 	return writer.WriteToFile(outDir, data.SheetName(), outFileSuffix, outBytes)
 }
 
-func WriteToFile(data translator.DataHolder, goPackage string, outDir string, addEnum bool) error {
+func WriteToFile(data types.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	if err := outputDefFile(goPackage, outDir); err != nil {
 		return fmt.Errorf("generate go def file failed -> %w", err)
 	}

@@ -3,11 +3,7 @@ package writer
 import (
 	"fmt"
 	"os"
-
-	"git.woa.com/modnarshen/excelconfc/translator"
 )
-
-type Field = *translator.Node
 
 func genOutFilePath(outDir string, fileName string, fileSuffix string) string {
 	if outDir[len(outDir)-1] == '/' {

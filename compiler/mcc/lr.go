@@ -18,10 +18,6 @@ type LRParser struct {
 	grammar *Grammar
 }
 
-func (p *LRParser) Parse() error {
-	return nil
-}
-
 func (p *LRParser) AnalyzeString(r io.Reader) error {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
@@ -90,7 +86,7 @@ func (p *LRParser) BuildAST(input []ASTNode, onReduce ReduceCallback) (ASTNode, 
 	stateStack.Push(0)
 	var err error
 	idx := 0
-	input = append(input, NewMiddleASTNode(EndMark))
+	input = append(input, InputEndASTNode)
 	util.LogTrace("input: %v", input)
 	for idx < len(input) {
 		val := 0
@@ -135,6 +131,19 @@ func (p *LRParser) BuildAST(input []ASTNode, onReduce ReduceCallback) (ASTNode, 
 		return nil, fmt.Errorf("build AST failed|stackLen:%d", len(nodeStack))
 	}
 	return nodeStack[0], nil
+}
+
+func FilterAST(astRoot ASTNode, filterFunc func(node ASTNode) bool) ASTNode {
+	if !filterFunc(astRoot) {
+		return nil
+	}
+	copiedNode := NewASTNode(astRoot.LexVal(), astRoot.Name(), astRoot.Type(), astRoot.ColIdx(), astRoot.GroupFlag())
+	for _, subNode := range astRoot.SubNodes() {
+		if copiedSubNode := FilterAST(subNode, filterFunc); copiedSubNode != nil {
+			copiedNode.AddSubNode(copiedSubNode)
+		}
+	}
+	return copiedNode
 }
 
 func NewLRParser(grammar *Grammar) Parser {

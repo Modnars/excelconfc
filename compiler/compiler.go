@@ -23,6 +23,7 @@ type compiler struct {
 	outDir    string
 	goPackage string
 	addEnum   bool
+	groupFlag uint8
 	parser    mcc.Parser
 }
 
@@ -37,6 +38,7 @@ func newCompilerWithOptions(options *Options) *compiler {
 		outDir:    options.outDir,
 		goPackage: options.goPackage,
 		addEnum:   options.addEnum,
+		groupFlag: options.groupFlag,
 	}
 }
 
@@ -65,9 +67,15 @@ func (c *compiler) Compile() error {
 		return fmt.Errorf("exec BuildAST failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
 	}
 	astRoot.SetType(c.sheetName)
-	xlsxData.SetAST(astRoot)
+	// xlsxData.SetAST(astRoot)
+	// mcc.PrintAST(mcc.FilterAST(astRoot, func(node mcc.ASTNode) bool {
+	// 	return node.GroupFlag()&c.groupFlag != 0
+	// }), 0)
+	xlsxData.SetAST(mcc.FilterAST(astRoot, func(node mcc.ASTNode) bool {
+		return node.GroupFlag()&c.groupFlag != 0
+	}))
 	if util.VerboseMode {
-		mcc.PrintTree(astRoot, 0)
+		mcc.PrintAST(astRoot, 0)
 	}
 
 	if err := protobuf.WriteToFile(xlsxData, c.goPackage, c.outDir, c.addEnum); err != nil {

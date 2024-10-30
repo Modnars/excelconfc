@@ -6,11 +6,8 @@ import (
 	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
-	"git.woa.com/modnarshen/excelconfc/translator"
 	"git.woa.com/modnarshen/excelconfc/types"
 )
-
-type Field = translator.Node
 
 func extractCellVal(cell string, asType string) (any, error) {
 	switch asType {

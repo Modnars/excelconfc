@@ -24,6 +24,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 
 	case 3: // FIELDS -> ε
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_FIELDS)
+		newASTNode.SetGroupFlag(types.GroupServer | types.GroupClient) // default flag is `all`
 		nodeStack = append(nodeStack, newASTNode)
 
 	case 4, 5, 6, 7: // FIELD -> BDT | ARRAY | STRUCT | VEC
@@ -36,15 +37,16 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 		// treat the array leaf node as a `BDT`
 
 	case 13: // STRUCT -> ADT { FIELDS }
-		subNode := nodeStack[stackTop-2]
-		subNode.SetName(nodeStack[stackTop-4].Name()).SetType(nodeStack[stackTop-4].Type())
+		newASTNode := nodeStack[stackTop-2]
+		subNode := nodeStack[stackTop-4]
+		newASTNode.SetName(subNode.Name()).SetType(subNode.Type()).SetGroupFlag(subNode.GroupFlag())
 		nodeStack = nodeStack[:stackTop-len(production.Right)]
-		nodeStack = append(nodeStack, subNode)
+		nodeStack = append(nodeStack, newASTNode)
 
 	case 14: // VEC -> ADT VEC_ADT_ITEMS
 		subNode := nodeStack[stackTop-2]
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC)
-		newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
+		newASTNode.SetName(subNode.Name()).SetType(subNode.Type()).SetGroupFlag(subNode.GroupFlag())
 		for i, ssubNode := range nodeStack[stackTop-1].SubNodes() {
 			ssubNode.SetName(fmt.Sprintf("%s[%d]", subNode.Name(), i)).SetType(subNode.Type())
 			newASTNode.AddSubNode(ssubNode)
@@ -55,7 +57,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 	case 15: // VEC -> BDT VEC_BDT_ITEMS
 		subNode := nodeStack[stackTop-2]
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC)
-		newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
+		newASTNode.SetName(subNode.Name()).SetType(subNode.Type()).SetGroupFlag(subNode.GroupFlag())
 		for i, ssubNode := range nodeStack[stackTop-1].SubNodes() {
 			ssubNode.SetName(fmt.Sprintf("%s[%d]", subNode.Name(), i)).SetType(subNode.Type())
 			newASTNode.AddSubNode(ssubNode)
@@ -66,7 +68,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 	case 16: // ADT -> id
 		subNode := nodeStack[stackTop-1]
 		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_ADT)
-		newASTNode.SetName(subNode.Name()).SetType(subNode.Type())
+		newASTNode.SetName(subNode.Name()).SetType(subNode.Type()).SetGroupFlag(subNode.GroupFlag())
 		newASTNode.AddSubNode(subNode)
 		nodeStack[stackTop-1] = newASTNode
 

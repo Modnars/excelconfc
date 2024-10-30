@@ -7,6 +7,7 @@ type Options struct {
 	outDir    string
 	goPackage string
 	addEnum   bool
+	groupFlag uint8
 }
 
 type Option func(*Options)
@@ -44,5 +45,11 @@ func WithGoPackage(goPackage string) Option {
 func WithAddEnum(addEnum bool) Option {
 	return func(o *Options) {
 		o.addEnum = addEnum
+	}
+}
+
+func WithGroupFlag(groupFlag uint8) Option {
+	return func(o *Options) {
+		o.groupFlag = groupFlag
 	}
 }

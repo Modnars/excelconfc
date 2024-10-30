@@ -8,11 +8,28 @@ package translator
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 	"git.woa.com/modnarshen/excelconfc/rules"
 	"git.woa.com/modnarshen/excelconfc/types"
 )
+
+var (
+	bracketRegexp = regexp.MustCompile(`(\[|\]|\{|\})`)
+)
+
+// 删除传入的所有标记，如果成功删除任意标记，返回成功删除标记后的 s 和 true，否则返回 s 本身和 false
+func removeAllMarks(str string, marks ...string) (string, bool) {
+	removed := false
+	for _, mark := range marks {
+		if strings.Contains(str, mark) {
+			str = strings.ReplaceAll(str, mark, "")
+			removed = true
+		}
+	}
+	return str, removed
+}
 
 func getLexVal(rawType, desc string) string {
 	if !types.IsBasicType(rawType) {
@@ -20,9 +37,6 @@ func getLexVal(rawType, desc string) string {
 			return types.LEX_ENUM
 		}
 		return types.LEX_ID
-	}
-	if desc == "E" && !types.IsBasicType(rawType) {
-		return types.LEX_ENUM
 	}
 	if desc == types.MARK_DESC_ARRAY && types.IsBasicType(rawType) {
 		return types.LEX_ARRAY
@@ -38,36 +52,30 @@ func getLexVal(rawType, desc string) string {
 
 func NewASTNodes(name string, fieldType string, desc string, colIdx int) []mcc.ASTNode {
 	res := []mcc.ASTNode{}
-	groupFlag := 0
+	groupFlag := uint8(0)
 	isFound := false
 	if name, isFound = removeAllMarks(name, "|S", "|s"); isFound {
-		groupFlag = groupFlag | 0b01
+		groupFlag = groupFlag | types.GroupServer
 	}
 	if name, isFound = removeAllMarks(name, "|C", "|c"); isFound {
-		groupFlag = groupFlag | 0b10
+		groupFlag = groupFlag | types.GroupClient
+	}
+	if groupFlag == 0 { // if not set, set all flag
+		groupFlag = groupFlag | types.GroupServer | types.GroupClient
 	}
 	if name == "[]" {
-		res = append(res, mcc.NewASTNode("[]", name, fieldType, colIdx))
+		res = append(res, mcc.NewASTNode("[]", name, fieldType, colIdx, groupFlag))
 	} else {
-		re := regexp.MustCompile(`(\[|\]|\{|\})`)
-
 		// 使用正则表达式进行切分，并保留分隔符
-		parts := re.Split(name, -1)
-		matches := re.FindAllString(name, -1)
+		parts := bracketRegexp.Split(name, -1)
+		matches := bracketRegexp.FindAllString(name, -1)
 		for i, part := range parts {
 			if part != "" {
 				lexVal := getLexVal(fieldType, desc)
-				// if types.IsIntType(fieldType) {
-				// 	lexVal = "int"
-				// } else if types.IsStringType(fieldType) {
-				// 	lexVal = "string"
-				// } else if desc == "E" {
-				// 	lexVal = "enum"
-				// }
-				res = append(res, mcc.NewASTNode(lexVal, part, fieldType, colIdx))
+				res = append(res, mcc.NewASTNode(lexVal, part, fieldType, colIdx, groupFlag))
 			}
 			if i < len(matches) {
-				res = append(res, mcc.NewASTNode(matches[i], matches[i], "", colIdx))
+				res = append(res, mcc.NewASTNode(matches[i], matches[i], "", colIdx, groupFlag))
 			}
 		}
 	}
