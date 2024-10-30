@@ -1,0 +1,37 @@
+{
+  "data": [
+    {
+      "id": 1,
+      "task_ref_vec": [
+        {
+          "task_id": 100
+        },
+        {
+          "task_id": 101
+        }
+      ],
+      "hot_update_item": {
+        "new_task_id": 103,
+        "desc": "Take a rest.",
+        "task_id": 101
+      },
+      "act_id": 111
+    },
+    {
+      "id": 2,
+      "task_ref_vec": [
+        {
+          "task_id": 200
+        },
+        {
+          "task_id": 201
+        }
+      ],
+      "hot_update_item": {
+        "task_id": 200,
+        "new_task_id": 203,
+        "desc": "Eat and sleep."
+      }
+    }
+  ]
+}
