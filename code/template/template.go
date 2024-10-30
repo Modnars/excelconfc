@@ -17,8 +17,6 @@ const (
 	TmplGoCodeDefDateTime = codeTmplType("golang.code.def.datetime.tmpl")
 	TmplGoCodeConfMap     = codeTmplType("golang.code.confmap.tmpl")
 
-	TmplJsonFields = codeTmplType("json.fields.tmpl")
-
 	TmplProtoCodePackage = codeTmplType("proto.code.package.tmpl")
 	TmplProtoComments    = codeTmplType("proto.comments.tmpl")
 )
