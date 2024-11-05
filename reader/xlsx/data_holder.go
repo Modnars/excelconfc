@@ -1,7 +1,7 @@
 package xlsx
 
 import (
-	"git.woa.com/modnarshen/excelconfc/types"
+	"git.woa.com/modnarshen/excelconfc/lex"
 )
 
 type DataHolder struct {
@@ -9,8 +9,8 @@ type DataHolder struct {
 	sheetName  string
 	headers    [][]string
 	data       [][]string
-	enumTypes  []*types.EnumTypeSt
-	enumValMap types.EVM
+	enumTypes  []*lex.EnumTypeSt
+	enumValMap lex.EVM
 }
 
 func (h *DataHolder) FileName() string {
@@ -29,15 +29,13 @@ func (h *DataHolder) Data() [][]string {
 	return h.data
 }
 
-func (h *DataHolder) EnumTypes() []*types.EnumTypeSt {
+func (h *DataHolder) EnumTypes() []*lex.EnumTypeSt {
 	return h.enumTypes
 }
 
-func (h *DataHolder) EnumValMap() types.EVM {
+func (h *DataHolder) EnumValMap() lex.EVM {
 	return h.enumValMap
 }
-
-// var _ types.DataHolder = (*DataHolder)(nil)
 
 type NewDataHolderOption func(*DataHolder)
 
@@ -65,13 +63,13 @@ func WithData(data [][]string) NewDataHolderOption {
 	}
 }
 
-func WithEnumTypes(enumTypes []*types.EnumTypeSt) NewDataHolderOption {
+func WithEnumTypes(enumTypes []*lex.EnumTypeSt) NewDataHolderOption {
 	return func(dh *DataHolder) {
 		dh.enumTypes = enumTypes
 	}
 }
 
-func WithEnumValMap(enumValMap types.EVM) NewDataHolderOption {
+func WithEnumValMap(enumValMap lex.EVM) NewDataHolderOption {
 	return func(dh *DataHolder) {
 		dh.enumValMap = enumValMap
 	}

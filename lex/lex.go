@@ -3,7 +3,7 @@
  * @Date: 2024.10.25 10:11:54
  * @Note: Copyrights (c) 2024 modnarshen. All rights reserved.
  */
-package translator
+package lex
 
 import (
 	"fmt"
@@ -12,7 +12,6 @@ import (
 
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 	"git.woa.com/modnarshen/excelconfc/rules"
-	"git.woa.com/modnarshen/excelconfc/types"
 )
 
 var (
@@ -32,22 +31,22 @@ func removeAllMarks(str string, marks ...string) (string, bool) {
 }
 
 func getLexVal(rawType, desc string) string {
-	if !types.IsBasicType(rawType) {
-		if desc == "E" {
-			return types.LEX_ENUM
+	if !IsBasicType(rawType) {
+		if desc == MARK_DESC_ENUM {
+			return LEX_ENUM
 		}
-		return types.LEX_ID
+		return LEX_ID
 	}
-	if desc == types.MARK_DESC_ARRAY && types.IsBasicType(rawType) {
-		return types.LEX_ARRAY
+	if desc == MARK_DESC_ARRAY && IsBasicType(rawType) {
+		return LEX_ARRAY
 	}
-	if types.IsIntType(rawType) {
-		return types.LEX_INT
+	if IsIntType(rawType) {
+		return LEX_INT
 	}
-	if types.IsStringType(rawType) {
-		return types.LEX_STRING
+	if IsStringType(rawType) {
+		return LEX_STRING
 	}
-	return types.TOK_NONE
+	return TOK_NONE
 }
 
 func NewASTNodes(name string, fieldType string, desc string, colIdx int) []mcc.ASTNode {
@@ -55,13 +54,13 @@ func NewASTNodes(name string, fieldType string, desc string, colIdx int) []mcc.A
 	groupFlag := uint8(0)
 	isFound := false
 	if name, isFound = removeAllMarks(name, "|S", "|s"); isFound {
-		groupFlag = groupFlag | types.GroupServer
+		groupFlag = groupFlag | GroupServer
 	}
 	if name, isFound = removeAllMarks(name, "|C", "|c"); isFound {
-		groupFlag = groupFlag | types.GroupClient
+		groupFlag = groupFlag | GroupClient
 	}
 	if groupFlag == 0 { // if not set, set all flag
-		groupFlag = groupFlag | types.GroupServer | types.GroupClient
+		groupFlag = groupFlag | GroupServer | GroupClient
 	}
 	if name == "[]" {
 		res = append(res, mcc.NewASTNode("[]", name, fieldType, colIdx, groupFlag))

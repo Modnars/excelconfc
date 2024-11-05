@@ -6,38 +6,37 @@ import (
 	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
-	"git.woa.com/modnarshen/excelconfc/types"
 )
 
 func extractCellVal(cell string, asType string) (any, error) {
 	switch asType {
-	case types.TOK_TYPE_STRING, types.TOK_TYPE_DATETIME:
+	case TOK_TYPE_STRING, TOK_TYPE_DATETIME:
 		return cell, nil
-	case types.TOK_TYPE_BOOL:
-		if cell == "" || cell == "0" || cell == types.MARK_VAL_FALSE {
+	case TOK_TYPE_BOOL:
+		if cell == "" || cell == "0" || cell == MARK_VAL_FALSE {
 			return false, nil
 		} else {
 			return true, nil
 		}
-	case types.TOK_TYPE_INT32:
+	case TOK_TYPE_INT32:
 		return strconv.ParseInt(cell, 10, 32)
-	case types.TOK_TYPE_UINT32:
+	case TOK_TYPE_UINT32:
 		return strconv.ParseUint(cell, 10, 32)
-	case types.TOK_TYPE_INT64:
+	case TOK_TYPE_INT64:
 		return strconv.ParseInt(cell, 10, 64)
-	case types.TOK_TYPE_UINT64:
+	case TOK_TYPE_UINT64:
 		return strconv.ParseUint(cell, 10, 64)
 	}
 	return cell, nil
 }
 
-func CellValue(astNode mcc.ASTNode, cell string, evm types.EVM) (any, error) {
-	if astNode.LexVal() == types.LEX_ENUM {
+func CellValue(astNode mcc.ASTNode, cell string, evm EVM) (any, error) {
+	if astNode.LexVal() == LEX_ENUM {
 		if evm[cell] == nil {
 			return nil, fmt.Errorf("enum label %s not found", cell)
 		}
 		return evm[cell].ID, nil
-	} else if astNode.LexVal() == types.LEX_ARRAY {
+	} else if astNode.LexVal() == LEX_ARRAY {
 		parts := strings.Split(cell, ";")
 		result := []any{}
 		for _, part := range parts {

@@ -8,7 +8,7 @@ import (
 
 	"git.woa.com/modnarshen/excelconfc/code/template"
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
-	"git.woa.com/modnarshen/excelconfc/types"
+	"git.woa.com/modnarshen/excelconfc/lex"
 	"git.woa.com/modnarshen/excelconfc/util"
 	"git.woa.com/modnarshen/excelconfc/writer"
 )
@@ -43,7 +43,7 @@ func collectMessages(astNode mcc.ASTNode, result []mcc.ASTNode) []mcc.ASTNode {
 	for _, subNode := range astNode.SubNodes() {
 		result = collectMessages(subNode, result)
 	}
-	if astNode.LexVal() == types.MID_NODE_FIELDS && astNode.Type() != types.TOK_NONE {
+	if astNode.LexVal() == lex.MID_NODE_FIELDS && astNode.Type() != lex.TOK_NONE {
 		result = append(result, astNode)
 	}
 	return result
@@ -62,7 +62,7 @@ func writeMessage(wr io.Writer, rootNode mcc.ASTNode) error {
 		msgFieldNo := 0
 		for _, field := range message.SubNodes() {
 			msgFieldNo++
-			if field.LexVal() == types.MID_NODE_VEC {
+			if field.LexVal() == lex.MID_NODE_VEC {
 				fmt.Fprintf(wr, "%srepeated %s %s = %d;\n", util.IndentSpace(indent), field.Type(), field.Name(), msgFieldNo)
 			} else {
 				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), field.Type(), field.Name(), msgFieldNo)
@@ -75,7 +75,7 @@ func writeMessage(wr io.Writer, rootNode mcc.ASTNode) error {
 	return nil
 }
 
-func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
+func writeEnum(wr io.Writer, enumTypes []*lex.EnumTypeSt) error {
 	indent := 0
 	for _, enumType := range enumTypes {
 		fmt.Fprintf(wr, "\nenum %s {\n", enumType.Name)
@@ -89,7 +89,7 @@ func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
 	return nil
 }
 
-func WriteToFile(data types.DataHolder, goPackage string, outDir string, addEnum bool) error {
+func WriteToFile(data lex.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	wr := &strings.Builder{}
 
 	if err := writeFileComment(wr, data.FileName(), data.SheetName()); err != nil {

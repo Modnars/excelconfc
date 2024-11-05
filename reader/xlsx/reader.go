@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
+	"git.woa.com/modnarshen/excelconfc/lex"
 	"git.woa.com/modnarshen/excelconfc/rules"
-	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
 	"github.com/xuri/excelize/v2"
 )
@@ -47,14 +47,14 @@ func readDataSheet(xlsxFile *excelize.File, dataSheetName string) ([][]string, [
 	return headers, rows[rules.ROW_HEAD_MAX:], nil
 }
 
-func readEnumSheet(xlsxFile *excelize.File, enumSheetName string) ([]*types.EnumTypeSt, map[string]*types.EnumValSt, error) {
+func readEnumSheet(xlsxFile *excelize.File, enumSheetName string) ([]*lex.EnumTypeSt, map[string]*lex.EnumValSt, error) {
 	rows, err := xlsxFile.GetRows(enumSheetName)
 	if err != nil {
 		return nil, nil, fmt.Errorf("get enum sheet rows failed|sheet:%s -> %w", enumSheetName, err)
 	}
-	allEnumInfos := []*types.EnumTypeSt{}
-	enumValMap := make(map[string]*types.EnumValSt)
-	currEnumInfo := &types.EnumTypeSt{}
+	allEnumInfos := []*lex.EnumTypeSt{}
+	enumValMap := make(map[string]*lex.EnumValSt)
+	currEnumInfo := &lex.EnumTypeSt{}
 	currLabel := ""
 	for i := 0; i < len(rows); i++ {
 		for len(rows[i]) <= 0 {
@@ -64,7 +64,7 @@ func readEnumSheet(xlsxFile *excelize.File, enumSheetName string) ([]*types.Enum
 		if len(matched) == 3 {
 			allEnumInfos = append(allEnumInfos, currEnumInfo)
 			currLabel = matched[2]
-			currEnumInfo = &types.EnumTypeSt{Name: matched[1]}
+			currEnumInfo = &lex.EnumTypeSt{Name: matched[1]}
 			continue
 		}
 		if strings.HasPrefix(rows[i][0], "["+currLabel+"]") {
@@ -72,7 +72,7 @@ func readEnumSheet(xlsxFile *excelize.File, enumSheetName string) ([]*types.Enum
 			if err != nil {
 				return nil, nil, err
 			}
-			newEnumVal := &types.EnumValSt{Name: rows[i][2], ID: validId}
+			newEnumVal := &lex.EnumValSt{Name: rows[i][2], ID: validId}
 			currEnumInfo.EnumVals = append(currEnumInfo.EnumVals, newEnumVal)
 			enumValMap[rows[i][0]] = newEnumVal
 			continue
@@ -82,7 +82,7 @@ func readEnumSheet(xlsxFile *excelize.File, enumSheetName string) ([]*types.Enum
 	return allEnumInfos[1:], enumValMap, nil
 }
 
-func ReadFile(filePath string, sheetName string, enumSheetName string) (types.DataHolder, error) {
+func ReadFile(filePath string, sheetName string, enumSheetName string) (lex.DataHolder, error) {
 	xlsxFile, err := excelize.OpenFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("excelize open file failed|filePath:%s|sheet:%s -> %w", filePath, sheetName, err)
@@ -101,7 +101,7 @@ func ReadFile(filePath string, sheetName string, enumSheetName string) (types.Da
 	if err != nil {
 		return nil, fmt.Errorf("read enum sheet failed|file:%s|sheet:%s -> %w", filepath.Base(filePath), sheetName, err)
 	}
-	return types.NewDataHolder(
+	return lex.NewDataHolder(
 		filepath.Base(filePath), sheetName,
 		headers, data,
 		enumTypes, enumValMap,

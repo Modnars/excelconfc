@@ -6,9 +6,9 @@ import (
 	"os"
 
 	"git.woa.com/modnarshen/excelconfc/compiler"
+	"git.woa.com/modnarshen/excelconfc/lex"
 	"git.woa.com/modnarshen/excelconfc/reader/xlsx"
 	"git.woa.com/modnarshen/excelconfc/rules"
-	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
 	"git.woa.com/modnarshen/excelconfc/writer/golang"
 	"git.woa.com/modnarshen/excelconfc/writer/json"
@@ -37,7 +37,7 @@ func main() {
 	addEnum := flag.Bool("add_enum", false, "add the enumeration values defined in the enumeration table to the current table output")
 	flag.BoolVar(&rules.DEBUG_MODE, "debug", false, "DEBUG mode allows invalid output")
 	flag.BoolVar(&util.NO_COLORFUL_LOG, "ncl", false, "`ncl` makes no colorful log output")
-	flag.BoolVar(&util.VerboseMode, "verbose", false, "verbose mode show more debug information")
+	flag.BoolVar(&util.VerboseMode, "verbose", false, "verbose mode show more details information")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n", os.Args[0])
@@ -55,11 +55,11 @@ func main() {
 	groupFlag := uint8(0)
 	switch *groupLabel {
 	case "all":
-		groupFlag = groupFlag | types.GroupClient | types.GroupServer
+		groupFlag = groupFlag | lex.GroupClient | lex.GroupServer
 	case "server":
-		groupFlag = groupFlag | types.GroupServer
+		groupFlag = groupFlag | lex.GroupServer
 	case "client":
-		groupFlag = groupFlag | types.GroupClient
+		groupFlag = groupFlag | lex.GroupClient
 	}
 
 	xlsxData, err := xlsx.ReadFile(*filePath, *sheetName, *enumSheet)

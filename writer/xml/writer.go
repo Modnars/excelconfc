@@ -13,7 +13,6 @@ import (
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 	"git.woa.com/modnarshen/excelconfc/lex"
 	"git.woa.com/modnarshen/excelconfc/rules"
-	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
 	"git.woa.com/modnarshen/excelconfc/writer"
 )
@@ -22,8 +21,8 @@ const (
 	outFileSuffix = ".ec.xml"
 )
 
-func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm types.EVM, indent int) error {
-	if astNode.LexVal() != types.MID_NODE_FIELDS {
+func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm lex.EVM, indent int) error {
+	if astNode.LexVal() != lex.MID_NODE_FIELDS {
 		return nil
 	}
 
@@ -33,7 +32,7 @@ func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm type
 		}
 
 		switch subNode.LexVal() {
-		case types.MID_NODE_FIELDS:
+		case lex.MID_NODE_FIELDS:
 			fmt.Fprintf(wr, "%s<%s>\n", util.IndentSpace(indent), subNode.Name())
 			indent++
 			if err := writeLineData(wr, subNode, rowData, evm, indent); err != nil {
@@ -42,10 +41,10 @@ func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm type
 			indent--
 			fmt.Fprintf(wr, "%s</%s>\n", util.IndentSpace(indent), subNode.Name())
 
-		case types.MID_NODE_VEC:
+		case lex.MID_NODE_VEC:
 			fmt.Fprintf(wr, "%s<%s>\n", util.IndentSpace(indent), subNode.Name())
 			indent++
-			if types.IsBasicType(subNode.Type()) {
+			if lex.IsBasicType(subNode.Type()) {
 				for _, ssubNode := range subNode.SubNodes() {
 					val, err := lex.CellValue(ssubNode, rowData[ssubNode.ColIdx()], evm)
 					if err != nil {
@@ -67,7 +66,7 @@ func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm type
 			indent--
 			fmt.Fprintf(wr, "%s</%s>\n", util.IndentSpace(indent), subNode.Name())
 
-		case types.LEX_ARRAY:
+		case lex.LEX_ARRAY:
 			val, err := lex.CellValue(subNode, rowData[subNode.ColIdx()], evm)
 			if err != nil {
 				return err
@@ -91,7 +90,7 @@ func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm type
 	return nil
 }
 
-func writeAllLineData(wr io.Writer, data types.DataHolder) error {
+func writeAllLineData(wr io.Writer, data lex.DataHolder) error {
 	indent := 0
 	fmt.Fprintf(wr, "<%sMap>\n<all_infos>\n", data.SheetName())
 	indent++
@@ -107,7 +106,7 @@ func writeAllLineData(wr io.Writer, data types.DataHolder) error {
 	return nil
 }
 
-func WriteToFile(data types.DataHolder, outDir string) error {
+func WriteToFile(data lex.DataHolder, outDir string) error {
 	var strBuilder strings.Builder
 	if err := writeAllLineData(&strBuilder, data); err != nil {
 		return err

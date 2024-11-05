@@ -3,7 +3,7 @@
  * @Date: 2024.10.29 17:34:25
  * @Note: Copyrights (c) 2024 modnarshen. All rights reserved.
  */
-package types
+package lex
 
 const (
 	GroupServer = 0b01

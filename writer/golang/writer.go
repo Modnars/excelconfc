@@ -8,8 +8,8 @@ import (
 
 	"git.woa.com/modnarshen/excelconfc/code/template"
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
+	"git.woa.com/modnarshen/excelconfc/lex"
 	"git.woa.com/modnarshen/excelconfc/rules"
-	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
 	"git.woa.com/modnarshen/excelconfc/writer"
 )
@@ -98,7 +98,7 @@ func writeDeclaration(wr io.Writer, goPackage string, importPkgs ...string) erro
 	return nil
 }
 
-func writeEnum(wr io.Writer, enumTypes []*types.EnumTypeSt) error {
+func writeEnum(wr io.Writer, enumTypes []*lex.EnumTypeSt) error {
 	indent := 0
 	fmt.Fprintf(wr, "\n")
 	for _, enumType := range enumTypes {
@@ -184,13 +184,13 @@ func collectStruct(astNode mcc.ASTNode, result []mcc.ASTNode) []mcc.ASTNode {
 	for _, subNode := range astNode.SubNodes() {
 		result = collectStruct(subNode, result)
 	}
-	if astNode.LexVal() == types.MID_NODE_FIELDS && astNode.Type() != types.TOK_NONE {
+	if astNode.LexVal() == lex.MID_NODE_FIELDS && astNode.Type() != lex.TOK_NONE {
 		result = append(result, astNode)
 	}
 	return result
 }
 
-func writeStruct(wr io.Writer, data types.DataHolder) error {
+func writeStruct(wr io.Writer, data lex.DataHolder) error {
 	structFields := []mcc.ASTNode{}
 	indent := 0
 	structFields = collectStruct(data.AST(), structFields)
@@ -202,7 +202,7 @@ func writeStruct(wr io.Writer, data types.DataHolder) error {
 		fmt.Fprintf(wr, "\ntype %s struct {\n", structField.Type())
 		indent++
 		for _, subField := range structField.SubNodes() {
-			if subField.LexVal() == types.MID_NODE_VEC { // repeated
+			if subField.LexVal() == lex.MID_NODE_VEC { // repeated
 				fmt.Fprintf(wr, "%s%s []%s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name()), subField.Type(), subField.Name())
 			} else {
 				fmt.Fprintf(wr, "%s%s %s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name()), subField.Type(), subField.Name())
@@ -215,7 +215,7 @@ func writeStruct(wr io.Writer, data types.DataHolder) error {
 	return nil
 }
 
-func outputSrcFile(data types.DataHolder, goPackage string, outDir string, addEnum bool) error {
+func outputSrcFile(data lex.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	wr := &strings.Builder{}
 
 	if err := writeFileComments(wr, data.FileName(), data.SheetName()); err != nil {
@@ -243,7 +243,7 @@ func outputSrcFile(data types.DataHolder, goPackage string, outDir string, addEn
 	return writer.WriteToFile(outDir, data.SheetName(), outFileSuffix, outBytes)
 }
 
-func WriteToFile(data types.DataHolder, goPackage string, outDir string, addEnum bool) error {
+func WriteToFile(data lex.DataHolder, goPackage string, outDir string, addEnum bool) error {
 	if err := outputDefFile(goPackage, outDir); err != nil {
 		return fmt.Errorf("generate go def file failed -> %w", err)
 	}

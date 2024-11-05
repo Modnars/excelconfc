@@ -1,4 +1,4 @@
-package types
+package lex
 
 import "git.woa.com/modnarshen/excelconfc/util"
 

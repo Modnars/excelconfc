@@ -4,13 +4,12 @@ import (
 	"fmt"
 
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
-	"git.woa.com/modnarshen/excelconfc/translator"
-	"git.woa.com/modnarshen/excelconfc/types"
+	"git.woa.com/modnarshen/excelconfc/lex"
 	"git.woa.com/modnarshen/excelconfc/util"
 )
 
 type Compiler interface {
-	Compile(types.DataHolder) error
+	Compile(lex.DataHolder) error
 }
 
 type compiler struct {
@@ -41,8 +40,8 @@ func New(options ...Option) Compiler {
 	return newCompiler
 }
 
-func (c *compiler) Compile(data types.DataHolder) error {
-	nodes, err := translator.TransToASTNodes(data.Headers())
+func (c *compiler) Compile(data lex.DataHolder) error {
+	nodes, err := lex.TransToASTNodes(data.Headers())
 	if err != nil {
 		return fmt.Errorf("exec TransToASTNodes failed|file:%s|sheet:%s -> %w", c.fileName, c.sheetName, err)
 	}

@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
-	"git.woa.com/modnarshen/excelconfc/types"
+	"git.woa.com/modnarshen/excelconfc/lex"
 )
 
 var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []mcc.ASTNode) ([]mcc.ASTNode, error) {
@@ -23,8 +23,8 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 		nodeStack = nodeStack[:stackTop-1]
 
 	case 3: // FIELDS -> ε
-		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_FIELDS)
-		newASTNode.SetGroupFlag(types.GroupServer | types.GroupClient) // default flag is `all`
+		newASTNode := mcc.NewMiddleASTNode(lex.MID_NODE_FIELDS)
+		newASTNode.SetGroupFlag(lex.GroupServer | lex.GroupClient) // default flag is `all`
 		nodeStack = append(nodeStack, newASTNode)
 
 	case 4, 5, 6, 7: // FIELD -> BDT | ARRAY | STRUCT | VEC
@@ -45,7 +45,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 
 	case 14: // VEC -> ADT VEC_ADT_ITEMS
 		subNode := nodeStack[stackTop-2]
-		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC)
+		newASTNode := mcc.NewMiddleASTNode(lex.MID_NODE_VEC)
 		newASTNode.SetName(subNode.Name()).SetType(subNode.Type()).SetGroupFlag(subNode.GroupFlag())
 		for i, ssubNode := range nodeStack[stackTop-1].SubNodes() {
 			ssubNode.SetName(fmt.Sprintf("%s[%d]", subNode.Name(), i)).SetType(subNode.Type())
@@ -56,7 +56,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 
 	case 15: // VEC -> BDT VEC_BDT_ITEMS
 		subNode := nodeStack[stackTop-2]
-		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC)
+		newASTNode := mcc.NewMiddleASTNode(lex.MID_NODE_VEC)
 		newASTNode.SetName(subNode.Name()).SetType(subNode.Type()).SetGroupFlag(subNode.GroupFlag())
 		for i, ssubNode := range nodeStack[stackTop-1].SubNodes() {
 			ssubNode.SetName(fmt.Sprintf("%s[%d]", subNode.Name(), i)).SetType(subNode.Type())
@@ -67,7 +67,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 
 	case 16: // ADT -> id
 		subNode := nodeStack[stackTop-1]
-		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_ADT)
+		newASTNode := mcc.NewMiddleASTNode(lex.MID_NODE_ADT)
 		newASTNode.SetName(subNode.Name()).SetType(subNode.Type()).SetGroupFlag(subNode.GroupFlag())
 		newASTNode.AddSubNode(subNode)
 		nodeStack[stackTop-1] = newASTNode
@@ -79,7 +79,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 
 	case 18: // VEC_ADT_ITEMS -> [ FIELDS ]
 		subNode := nodeStack[stackTop-2]
-		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC_ADT_ITEMS)
+		newASTNode := mcc.NewMiddleASTNode(lex.MID_NODE_VEC_ADT_ITEMS)
 		newASTNode.AddSubNode(subNode)
 		nodeStack = nodeStack[:stackTop-len(production.Right)]
 		nodeStack = append(nodeStack, newASTNode)
@@ -90,7 +90,7 @@ var OnReduce mcc.ReduceCallback = func(production *mcc.Production, nodeStack []m
 
 	case 20: // VEC_BDT_ITEMS -> []
 		top := nodeStack[stackTop-1]
-		newASTNode := mcc.NewMiddleASTNode(types.MID_NODE_VEC_BDT_ITEMS)
+		newASTNode := mcc.NewMiddleASTNode(lex.MID_NODE_VEC_BDT_ITEMS)
 		newASTNode.SetType(top.Type())
 		newASTNode.AddSubNode(top)
 		nodeStack[stackTop-1] = newASTNode
