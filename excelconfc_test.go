@@ -33,7 +33,9 @@ func TestExcelconfcCmd(t *testing.T) {
 			`-excel=./testdata/ExcelConfTest.xlsx`,
 			`-sheet=` + testSheetName,
 			`-go_package=git.woa.com/modnarshen/uasvr-go/configs/excelconf;excelconf`,
-			`-outdir=./output`,
+			`-json_out=./output`,
+			`-go_out=./output`,
+			`-proto_out=./output`,
 			`--group=server`,
 		}
 

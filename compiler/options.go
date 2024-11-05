@@ -1,50 +1,22 @@
 package compiler
 
 type Options struct {
-	filePath  string
+	fileName  string
 	sheetName string
-	enumSheet string
-	outDir    string
-	goPackage string
-	addEnum   bool
 	groupFlag uint8
 }
 
 type Option func(*Options)
 
-func WithFilePath(filePath string) Option {
+func WithFileName(fileName string) Option {
 	return func(o *Options) {
-		o.filePath = filePath
+		o.fileName = fileName
 	}
 }
 
 func WithSheetName(sheetName string) Option {
 	return func(o *Options) {
 		o.sheetName = sheetName
-	}
-}
-
-func WithEnumSheet(enumSheet string) Option {
-	return func(o *Options) {
-		o.enumSheet = enumSheet
-	}
-}
-
-func WithOutDir(outDir string) Option {
-	return func(o *Options) {
-		o.outDir = outDir
-	}
-}
-
-func WithGoPackage(goPackage string) Option {
-	return func(o *Options) {
-		o.goPackage = goPackage
-	}
-}
-
-func WithAddEnum(addEnum bool) Option {
-	return func(o *Options) {
-		o.addEnum = addEnum
 	}
 }
 

@@ -6,9 +6,14 @@ import (
 	"os"
 
 	"git.woa.com/modnarshen/excelconfc/compiler"
+	"git.woa.com/modnarshen/excelconfc/reader/xlsx"
 	"git.woa.com/modnarshen/excelconfc/rules"
 	"git.woa.com/modnarshen/excelconfc/types"
 	"git.woa.com/modnarshen/excelconfc/util"
+	"git.woa.com/modnarshen/excelconfc/writer/golang"
+	"git.woa.com/modnarshen/excelconfc/writer/json"
+	"git.woa.com/modnarshen/excelconfc/writer/protobuf"
+	"git.woa.com/modnarshen/excelconfc/writer/xml"
 )
 
 func makeSureArgv(isPass bool, errMsg string) {
@@ -23,7 +28,10 @@ func main() {
 	filePath := flag.String("excel", "", "target Excel config file path")
 	sheetName := flag.String("sheet", "", "target Excel config sheet")
 	enumSheet := flag.String("enum_sheet", rules.DEFAULT_ENUM_SHEET_NAME, "enum definition sheet")
-	outDir := flag.String("outdir", ".", "output directory")
+	protoOutDir := flag.String("proto_out", "", "Generate Proto source file.")
+	goOutDir := flag.String("go_out", "", "Generate Go source file.")
+	jsonOutDir := flag.String("json_out", "", "Generate Json source file.")
+	xmlOutDir := flag.String("xml_out", "", "Generate XML source file.")
 	goPackage := flag.String("go_package", "excelconf", "target protobuf option go_package value")
 	groupLabel := flag.String("group", "server", "filter fields with group label, the label could be 'server', 'client' or 'all'")
 	addEnum := flag.Bool("add_enum", false, "add the enumeration values defined in the enumeration table to the current table output")
@@ -54,15 +62,43 @@ func main() {
 		groupFlag = groupFlag | types.GroupClient
 	}
 
-	if err := compiler.New(
-		compiler.WithFilePath(*filePath),
-		compiler.WithSheetName(*sheetName),
-		compiler.WithEnumSheet(*enumSheet),
-		compiler.WithOutDir(*outDir),
-		compiler.WithGoPackage(*goPackage),
-		compiler.WithAddEnum(*addEnum),
-		compiler.WithGroupFlag(groupFlag),
-	).Compile(); err != nil {
-		util.LogError(err.Error())
+	xlsxData, err := xlsx.ReadFile(*filePath, *sheetName, *enumSheet)
+	if err != nil {
+		util.LogError("exec ReadExcel failed|filePath:%s|sheetName:%s -> %v", *filePath, *sheetName, err)
+		os.Exit(1)
 	}
+
+	if err := compiler.New(
+		compiler.WithFileName(*filePath),
+		compiler.WithSheetName(*sheetName),
+		compiler.WithGroupFlag(groupFlag),
+	).Compile(xlsxData); err != nil {
+		util.LogError(err.Error())
+		os.Exit(1)
+	}
+
+	if *protoOutDir != "" {
+		if err := protobuf.WriteToFile(xlsxData, *goPackage, *protoOutDir, *addEnum); err != nil {
+			util.LogError("exec WriteToProto failed|filePath:%s|sheet:%s|outDir:%s -> %w", *filePath, *sheetName, *protoOutDir, err)
+		}
+	}
+
+	if *goOutDir != "" {
+		if err := golang.WriteToFile(xlsxData, *goPackage, *goOutDir, *addEnum); err != nil {
+			util.LogError("exec golang.WriteToFile failed|file:%s|sheet:%s -> %w", xlsxData.FileName(), xlsxData.SheetName(), err)
+		}
+	}
+
+	if *jsonOutDir != "" {
+		if err := json.WriteToFile(xlsxData, *jsonOutDir); err != nil {
+			util.LogError("exec json.WriteToFile failed|filePath:%s|sheet:%s|outDir:%s -> %w", *filePath, *sheetName, *jsonOutDir, err)
+		}
+	}
+
+	if *xmlOutDir != "" {
+		if err := xml.WriteToFile(xlsxData, *xmlOutDir); err != nil {
+			util.LogError("exec xml.WriteToFile failed|filePath:%s|sheet:%s|outDir:%s -> %w", *filePath, *sheetName, *xmlOutDir, err)
+		}
+	}
+
 }
