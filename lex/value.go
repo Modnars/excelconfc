@@ -1,4 +1,4 @@
-package json
+package lex
 
 import (
 	"fmt"

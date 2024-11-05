@@ -10,6 +10,7 @@ import (
 	"git.woa.com/modnarshen/excelconfc/writer/golang"
 	"git.woa.com/modnarshen/excelconfc/writer/json"
 	"git.woa.com/modnarshen/excelconfc/writer/protobuf"
+	"git.woa.com/modnarshen/excelconfc/writer/xml"
 )
 
 type Compiler interface {
@@ -67,15 +68,11 @@ func (c *compiler) Compile() error {
 		return fmt.Errorf("exec BuildAST failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
 	}
 	astRoot.SetType(c.sheetName)
-	// xlsxData.SetAST(astRoot)
-	// mcc.PrintAST(mcc.FilterAST(astRoot, func(node mcc.ASTNode) bool {
-	// 	return node.GroupFlag()&c.groupFlag != 0
-	// }), 0)
 	xlsxData.SetAST(mcc.FilterAST(astRoot, func(node mcc.ASTNode) bool {
 		return node.GroupFlag()&c.groupFlag != 0
 	}))
 	if util.VerboseMode {
-		mcc.PrintAST(astRoot, 0)
+		mcc.PrintAST(xlsxData.AST(), 0)
 	}
 
 	if err := protobuf.WriteToFile(xlsxData, c.goPackage, c.outDir, c.addEnum); err != nil {
@@ -86,6 +83,9 @@ func (c *compiler) Compile() error {
 	}
 	if err := json.WriteToFile(xlsxData, c.outDir); err != nil {
 		return fmt.Errorf("exec json.WriteToFile failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
+	}
+	if err := xml.WriteToFile(xlsxData, c.outDir); err != nil {
+		return fmt.Errorf("exec xml.WriteToFile failed|filePath:%s|sheet:%s|outDir:%s -> %w", c.filePath, c.sheetName, c.outDir, err)
 	}
 
 	return nil

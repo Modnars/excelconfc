@@ -4,25 +4,18 @@ import (
 	"fmt"
 
 	jsoniter "github.com/json-iterator/go"
-	"github.com/xuri/excelize/v2"
 
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
+	"git.woa.com/modnarshen/excelconfc/lex"
 	"git.woa.com/modnarshen/excelconfc/rules"
 	"git.woa.com/modnarshen/excelconfc/types"
+	"git.woa.com/modnarshen/excelconfc/util"
 	"git.woa.com/modnarshen/excelconfc/writer"
 )
 
 const (
 	outFileSuffix = ".ec.json"
 )
-
-func columnName(colIdx int) string {
-	name, err := excelize.ColumnNumberToName(colIdx + 1)
-	if err != nil {
-		return fmt.Sprint(colIdx)
-	}
-	return name
-}
 
 func buildLineData(astNode mcc.ASTNode, rowData []string, evm types.EVM) (map[string]any, error) {
 	if astNode.LexVal() != types.MID_NODE_FIELDS {
@@ -35,9 +28,9 @@ func buildLineData(astNode mcc.ASTNode, rowData []string, evm types.EVM) (map[st
 			vec := []any{}
 			if types.IsBasicType(subNode.Type()) {
 				for _, ssubNode := range subNode.SubNodes() {
-					val, err := CellValue(ssubNode, rowData[ssubNode.ColIdx()], evm)
+					val, err := lex.CellValue(ssubNode, rowData[ssubNode.ColIdx()], evm)
 					if err != nil {
-						return nil, fmt.Errorf("col:%s -> %w", columnName(ssubNode.ColIdx()), err)
+						return nil, fmt.Errorf("col:%s -> %w", util.ColumnName(ssubNode.ColIdx()), err)
 					}
 					vec = append(vec, val)
 				}
@@ -61,9 +54,9 @@ func buildLineData(astNode mcc.ASTNode, rowData []string, evm types.EVM) (map[st
 			if subNode.ColIdx() >= len(rowData) {
 				break
 			}
-			val, err := CellValue(subNode, rowData[subNode.ColIdx()], evm)
+			val, err := lex.CellValue(subNode, rowData[subNode.ColIdx()], evm)
 			if err != nil {
-				return nil, fmt.Errorf("col:%s -> %w", columnName(subNode.ColIdx()), err)
+				return nil, fmt.Errorf("col:%s -> %w", util.ColumnName(subNode.ColIdx()), err)
 			}
 			result[subNode.Name()] = val
 		}
