@@ -7,6 +7,7 @@ package excelconf
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"os"
 )
 
@@ -73,11 +74,11 @@ func (x ActTaskTargetType) String() string {
 }
 
 type ActConf struct {
-	ActId     uint32  `json:"act_id,omitempty"`
-	Title     string  `json:"title,omitempty"`
-	ActType   ActType `json:"act_type,omitempty"`
-	BeginTime string  `json:"begin_time,omitempty"`
-	EndTime   string  `json:"end_time,omitempty"`
+	ActId     uint32   `json:"act_id,omitempty" xml:"act_id"`
+	Title     string   `json:"title,omitempty" xml:"title"`
+	ActType   ActType  `json:"act_type,omitempty" xml:"act_type"`
+	BeginTime DateTime `json:"begin_time,omitempty" xml:"begin_time"`
+	EndTime   DateTime `json:"end_time,omitempty" xml:"end_time"`
 }
 
 type ActConfMap map[uint32]*ActConf
@@ -93,6 +94,23 @@ func (s ActConfMap) LoadFromJsonFile(filePath string) error {
 	json.Unmarshal(fileBytes, &jsonData)
 	for _, conf := range jsonData.Data {
 		s[conf.ActId] = &conf
+	}
+	return nil
+}
+
+func (s ActConfMap) LoadFromXmlFile(filePath string) error {
+	fileBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	xmlData := struct {
+		Data []*ActConf `xml:"all_infos>item"`
+	}{}
+	if err := xml.Unmarshal(fileBytes, &xmlData); err != nil {
+		return err
+	}
+	for _, conf := range xmlData.Data {
+		s[conf.ActId] = conf
 	}
 	return nil
 }

@@ -11,9 +11,9 @@
         }
       ],
       "hot_update_item": {
+        "task_id": 101,
         "new_task_id": 103,
-        "desc": "Take a rest.",
-        "task_id": 101
+        "desc": "Take a rest."
       },
       "act_id": 111
     },

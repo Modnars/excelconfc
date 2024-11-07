@@ -7,21 +7,22 @@ package excelconf
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"os"
 )
 
 type AwardItem struct {
-	ItemId uint32 `json:"item_id,omitempty"`
-	Num    uint32 `json:"num,omitempty"`
+	ItemId uint32 `json:"item_id,omitempty" xml:"item_id"`
+	Num    uint32 `json:"num,omitempty" xml:"num"`
 }
 
 type ActTaskConf struct {
-	TaskId     uint32      `json:"task_id,omitempty"`
-	Title      string      `json:"title,omitempty"`
-	TargetId   uint32      `json:"target_id,omitempty"`
-	TargetType uint32      `json:"target_type,omitempty"`
-	Progress   uint32      `json:"progress,omitempty"`
-	Awards     []AwardItem `json:"awards,omitempty"`
+	TaskId     uint32      `json:"task_id,omitempty" xml:"task_id"`
+	Title      string      `json:"title,omitempty" xml:"title"`
+	TargetId   uint32      `json:"target_id,omitempty" xml:"target_id"`
+	TargetType uint32      `json:"target_type,omitempty" xml:"target_type"`
+	Progress   uint32      `json:"progress,omitempty" xml:"progress"`
+	Awards     []AwardItem `json:"awards,omitempty" xml:"awards>item"`
 }
 
 type ActTaskConfMap map[uint32]*ActTaskConf
@@ -37,6 +38,23 @@ func (s ActTaskConfMap) LoadFromJsonFile(filePath string) error {
 	json.Unmarshal(fileBytes, &jsonData)
 	for _, conf := range jsonData.Data {
 		s[conf.TaskId] = &conf
+	}
+	return nil
+}
+
+func (s ActTaskConfMap) LoadFromXmlFile(filePath string) error {
+	fileBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	xmlData := struct {
+		Data []*ActTaskConf `xml:"all_infos>item"`
+	}{}
+	if err := xml.Unmarshal(fileBytes, &xmlData); err != nil {
+		return err
+	}
+	for _, conf := range xmlData.Data {
+		s[conf.TaskId] = conf
 	}
 	return nil
 }

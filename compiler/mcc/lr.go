@@ -137,7 +137,7 @@ func FilterAST(astRoot ASTNode, filterFunc func(node ASTNode) bool) ASTNode {
 	if !filterFunc(astRoot) {
 		return nil
 	}
-	copiedNode := NewASTNode(astRoot.LexVal(), astRoot.Name(), astRoot.Type(), astRoot.ColIdx(), astRoot.GroupFlag())
+	copiedNode := NewASTNode(astRoot.LexVal(), astRoot.Name(), astRoot.Type(), astRoot.Desc(), astRoot.ColIdx(), astRoot.GroupFlag())
 	for _, subNode := range astRoot.SubNodes() {
 		if copiedSubNode := FilterAST(subNode, filterFunc); copiedSubNode != nil {
 			copiedNode.AddSubNode(copiedSubNode)

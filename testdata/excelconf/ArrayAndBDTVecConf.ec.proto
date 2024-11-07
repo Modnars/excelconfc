@@ -10,13 +10,13 @@ package excelconf;
 option go_package = "git.woa.com/modnarshen/uasvr-go/configs/excelconf;excelconf";
 
 message IntStruct {
-    repeated int32 iVec = 1;
-    int32 iArray = 2;
+    repeated int32 i_vec = 1;
+    repeated int32 i_array = 2;
 }
 
 message ArrayAndBDTVecConf {
     int32 id = 1;
-    repeated int32 intVec = 2;
-    int32 intArray = 3;
-    repeated IntStruct intStruct = 4;
+    repeated int32 int_vec = 2;
+    repeated int32 int_array = 3;
+    repeated IntStruct int_structs = 4;
 }

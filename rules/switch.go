@@ -1,5 +1,6 @@
 package rules
 
 var (
-	DEBUG_MODE = false
+	DEBUG_MODE      = false
+	COMPATIBLE_MODE = false
 )

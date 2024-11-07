@@ -14,30 +14,7 @@ type Token = string
 type LexMark = string
 
 const (
-	MARK_TYPE_BOOL   Mark = "bool"
-	MARK_TYPE_INT32  Mark = "int32"
-	MARK_TYPE_UINT32 Mark = "uint32"
-	MARK_TYPE_INT64  Mark = "int64"
-	MARK_TYPE_UINT64 Mark = "uint64"
-	MARK_TYPE_STRING Mark = "string"
-
-	MARK_DESC_VECTOR   Mark = "vector"
-	MARK_DESC_ARRAY    Mark = "array"
-	MARK_DESC_DATETIME Mark = "D"
-	MARK_DESC_ENUM     Mark = "E"
-	MARK_DESC_KEY      Mark = "K"
-
-	MARK_VAL_TRUE  Mark = "true"
-	MARK_VAL_FALSE Mark = "false"
-)
-
-const (
 	TOK_NONE = ""
-
-	TOK_LF_SQ_BRACKET Token = "[" // left square bracket
-	TOK_RG_SQ_BRACKET Token = "]" // right square bracket
-	TOK_LF_CR_BRACKET Token = "{" // left curly bracket
-	TOK_RG_CR_BRACKET Token = "}" // right curly bracket
 
 	TOK_TYPE_BOOL        Token = "bool"
 	TOK_TYPE_INT32       Token = "int32"
@@ -45,6 +22,8 @@ const (
 	TOK_TYPE_INT64       Token = "int64"
 	TOK_TYPE_UINT64      Token = "uint64"
 	TOK_TYPE_STRING      Token = "string"
+	TOK_TYPE_FSTRING     Token = "FString"
+	TOK_TYPE_FTEXT       Token = "FText"
 	TOK_TYPE_STRUCT      Token = "struct"
 	TOK_TYPE_DATETIME    Token = "DateTime" // for golang
 	TOK_TYPE_ENUM        Token = "@Enum"
@@ -54,6 +33,12 @@ const (
 
 	TOK_VAL_TRUE  Token = "true"
 	TOK_VAL_FALSE Token = "false"
+
+	TOK_DESC_VECTOR   Token = "vector"
+	TOK_DESC_ARRAY    Token = "array"
+	TOK_DESC_DATETIME Token = "D"
+	TOK_DESC_ENUM     Token = "E"
+	TOK_DESC_KEY      Token = "K"
 
 	MID_NODE_FIELDS        LexMark = "Node@FIELDS"
 	MID_NODE_ADT           LexMark = "Node@ADT"
@@ -90,10 +75,6 @@ func IsIntType(tok Token) bool {
 
 func IsStringType(tok Token) bool {
 	return _STRING_TYPES.Contains(tok)
-}
-
-func IsRealStruct(tok Token) bool {
-	return tok == TOK_TYPE_STRUCT
 }
 
 func IsRepeatedLex(lexVal LexMark) bool {

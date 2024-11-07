@@ -30,26 +30,44 @@ func removeAllMarks(str string, marks ...string) (string, bool) {
 	return str, removed
 }
 
-func getLexVal(rawType, desc string) string {
-	if !IsBasicType(rawType) {
-		if desc == MARK_DESC_ENUM {
-			return LEX_ENUM
+func getLexInfo(rawType, desc string) (LexMark, Token, error) {
+	switch rawType {
+	case TOK_TYPE_BOOL:
+		if desc == LEX_ARRAY {
+			return LEX_ARRAY, rawType, nil
 		}
-		return LEX_ID
+		return LEX_BOOL, rawType, nil
+
+	case TOK_TYPE_INT32, TOK_TYPE_UINT32, TOK_TYPE_INT64, TOK_TYPE_UINT64:
+		if desc == LEX_ARRAY {
+			return LEX_ARRAY, rawType, nil
+		}
+		return LEX_INT, rawType, nil
+
+	case TOK_TYPE_STRING, TOK_TYPE_FSTRING, TOK_TYPE_FTEXT:
+		if desc == TOK_DESC_DATETIME {
+			return LEX_STRING, LEX_STRING, nil
+		} else if desc == LEX_ARRAY {
+			return LEX_ARRAY, rawType, nil
+		}
+		return LEX_STRING, LEX_STRING, nil
+
+	case TOK_TYPE_DATETIME: // built-in type
+		if desc == LEX_ARRAY {
+			return TOK_NONE, TOK_NONE, fmt.Errorf("datetime can not use `array`")
+		}
+		return LEX_STRING, rawType, nil
+
+	default:
+		if desc == TOK_DESC_ENUM {
+			return LEX_ENUM, rawType, nil
+		}
+		return LEX_ID, rawType, nil
 	}
-	if desc == MARK_DESC_ARRAY && IsBasicType(rawType) {
-		return LEX_ARRAY
-	}
-	if IsIntType(rawType) {
-		return LEX_INT
-	}
-	if IsStringType(rawType) {
-		return LEX_STRING
-	}
-	return TOK_NONE
+	// return TOK_NONE, TOK_NONE, fmt.Errorf("unknown lex node|type:%v|desc:%v", rawType, desc)
 }
 
-func NewASTNodes(name string, fieldType string, desc string, colIdx int) []mcc.ASTNode {
+func NewASTNodes(name string, fieldType string, desc string, colIdx int) ([]mcc.ASTNode, error) {
 	res := []mcc.ASTNode{}
 	groupFlag := uint8(0)
 	isFound := false
@@ -63,22 +81,25 @@ func NewASTNodes(name string, fieldType string, desc string, colIdx int) []mcc.A
 		groupFlag = groupFlag | GroupServer | GroupClient
 	}
 	if name == "[]" {
-		res = append(res, mcc.NewASTNode("[]", name, fieldType, colIdx, groupFlag))
+		res = append(res, mcc.NewASTNode("[]", name, fieldType, desc, colIdx, groupFlag))
 	} else {
 		// 使用正则表达式进行切分，并保留分隔符
 		parts := bracketRegexp.Split(name, -1)
 		matches := bracketRegexp.FindAllString(name, -1)
 		for i, part := range parts {
 			if part != "" {
-				lexVal := getLexVal(fieldType, desc)
-				res = append(res, mcc.NewASTNode(lexVal, part, fieldType, colIdx, groupFlag))
+				lexVal, nodeType, err := getLexInfo(fieldType, desc)
+				if err != nil {
+					return nil, err
+				}
+				res = append(res, mcc.NewASTNode(lexVal, part, nodeType, desc, colIdx, groupFlag))
 			}
 			if i < len(matches) {
-				res = append(res, mcc.NewASTNode(matches[i], matches[i], "", colIdx, groupFlag))
+				res = append(res, mcc.NewASTNode(matches[i], matches[i], "", "", colIdx, groupFlag))
 			}
 		}
 	}
-	return res
+	return res, nil
 }
 
 func TransToASTNodes(headers [][]string) ([]mcc.ASTNode, error) {
@@ -87,12 +108,15 @@ func TransToASTNodes(headers [][]string) ([]mcc.ASTNode, error) {
 	}
 	nodes := []mcc.ASTNode{}
 	for colIdx := range headers[rules.ROW_IDX_NAME] {
-		newNodes := NewASTNodes(
+		newNodes, err := NewASTNodes(
 			headers[rules.ROW_IDX_NAME][colIdx],
 			headers[rules.ROW_IDX_TYPE][colIdx],
 			headers[rules.ROW_IDX_DESC][colIdx],
 			colIdx,
 		)
+		if err != nil {
+			return nil, err
+		}
 		if newNodes != nil {
 			nodes = append(nodes, newNodes...)
 		}

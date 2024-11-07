@@ -53,25 +53,22 @@ func writeDeclImports(wr io.Writer, packages ...string) {
 	fmt.Fprintf(wr, strings.Join(outLines, "\n")+"\n")
 }
 
-func genGoStructFieldType(tp string, desc string) string {
-	if tp == "string" {
-		if desc == "D" {
-			return "DateTime"
-		}
+func genGoStructFieldType(node mcc.ASTNode) string {
+	if node.Type() == lex.TOK_TYPE_STRING && node.Desc() == lex.TOK_DESC_DATETIME {
+		return lex.TOK_TYPE_DATETIME
 	}
-	return tp
+	return node.Type()
 }
 
-func genGoConfKeyInfo(headers [][]string) (string, string) {
+func genGoConfKeyInfo(node mcc.ASTNode) (string, string) {
 	keyIndex := 0
-	for i := range headers[rules.ROW_IDX_NAME] {
-		if strings.Contains(headers[rules.ROW_IDX_DESC][i], "K") {
+	for i, subNode := range node.SubNodes() {
+		if strings.Contains(subNode.Desc(), lex.TOK_DESC_KEY) {
 			keyIndex = i
 			break
 		}
 	}
-	return genGoStructFieldType(headers[rules.ROW_IDX_TYPE][keyIndex], headers[rules.ROW_IDX_DESC][keyIndex]),
-		util.SnakeToPascal(headers[rules.ROW_IDX_NAME][keyIndex])
+	return genGoStructFieldType(node.SubNodes()[keyIndex]), util.SnakeToPascal(node.SubNodes()[keyIndex].Name())
 }
 
 func writeFileComments(wr io.Writer, fileName string, sheetName string) error {
@@ -147,8 +144,8 @@ func writeEnum(wr io.Writer, enumTypes []*lex.EnumTypeSt) error {
 	return nil
 }
 
-func writeStructMap(wr io.Writer, headers [][]string, sheetName string) error {
-	confKeyType, confKeyField := genGoConfKeyInfo(headers)
+func writeStructMap(wr io.Writer, astRoot mcc.ASTNode, sheetName string) error {
+	confKeyType, confKeyField := genGoConfKeyInfo(astRoot)
 	tmplParams := template.T{
 		"XXConf":         sheetName,
 		"XXConfMap":      sheetName + "Map",
@@ -167,7 +164,7 @@ func outputDefFile(goPackage string, outDir string) error {
 	if err := writeFileComments(&wr, "", ""); err != nil {
 		return fmt.Errorf("write Go file comments failed|fineName:%s -> %w", outGoDefFileName, err)
 	}
-	if err := writeDeclaration(&wr, goPackage, "encoding/json", "time"); err != nil {
+	if err := writeDeclaration(&wr, goPackage, "encoding/json", "encoding/xml", "time"); err != nil {
 		return fmt.Errorf("write Go declaration failed -> %w", err)
 	}
 	if err := template.ExecuteTemplate(&wr, template.TmplGoCodeDefDateTime, nil); err != nil {
@@ -202,10 +199,24 @@ func writeStruct(wr io.Writer, data lex.DataHolder) error {
 		fmt.Fprintf(wr, "\ntype %s struct {\n", structField.Type())
 		indent++
 		for _, subField := range structField.SubNodes() {
-			if subField.LexVal() == lex.MID_NODE_VEC { // repeated
-				fmt.Fprintf(wr, "%s%s []%s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name()), subField.Type(), subField.Name())
+			// if subField.LexVal() == lex.MID_NODE_VEC { // repeated
+			if lex.IsRepeatedLex(subField.LexVal()) { // repeated
+				fmt.Fprintf(wr, "%s%s []%s `json:\"%s,omitempty\" xml:\"%s>item\"`\n",
+					util.IndentSpace(indent),
+					util.SnakeToPascal(subField.Name()),
+					genGoStructFieldType(subField),
+					subField.Name(),
+					subField.Name(),
+				)
 			} else {
-				fmt.Fprintf(wr, "%s%s %s `json:\"%s,omitempty\"`\n", util.IndentSpace(indent), util.SnakeToPascal(subField.Name()), subField.Type(), subField.Name())
+				fmt.Fprintf(wr,
+					"%s%s %s `json:\"%s,omitempty\" xml:\"%s\"`\n",
+					util.IndentSpace(indent),
+					util.SnakeToPascal(subField.Name()),
+					genGoStructFieldType(subField),
+					subField.Name(),
+					subField.Name(),
+				)
 			}
 		}
 		indent--
@@ -221,7 +232,7 @@ func outputSrcFile(data lex.DataHolder, goPackage string, outDir string, addEnum
 	if err := writeFileComments(wr, data.FileName(), data.SheetName()); err != nil {
 		return fmt.Errorf("generate Go file comments failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
-	if err := writeDeclaration(wr, goPackage, "encoding/json", "os"); err != nil {
+	if err := writeDeclaration(wr, goPackage, "encoding/json", "encoding/xml", "os"); err != nil {
 		return fmt.Errorf("generate Go declaration code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
 	if addEnum {
@@ -232,7 +243,7 @@ func outputSrcFile(data lex.DataHolder, goPackage string, outDir string, addEnum
 	if err := writeStruct(wr, data); err != nil {
 		return fmt.Errorf("generate Conf Go code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
-	if err := writeStructMap(wr, data.Headers(), data.SheetName()); err != nil {
+	if err := writeStructMap(wr, data.AST(), data.SheetName()); err != nil {
 		return fmt.Errorf("generate ConfMap Go code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
 

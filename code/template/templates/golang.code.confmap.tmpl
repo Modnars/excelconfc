@@ -16,6 +16,23 @@ func (s {{.XXConfMap}}) LoadFromJsonFile(filePath string) error {
 	return nil
 }
 
+func (s {{.XXConfMap}}) LoadFromXmlFile(filePath string) error {
+	fileBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	xmlData := struct {
+		Data []*{{.XXConf}} `xml:"all_infos>item"`
+	}{}
+	if err := xml.Unmarshal(fileBytes, &xmlData); err != nil {
+		return err
+	}
+	for _, conf := range xmlData.Data {
+		s[conf.{{.XXConfKeyField}}] = conf
+	}
+	return nil
+}
+
 func (s {{.XXConfMap}}) GetVal(key {{.XXConfKeyType}}) *{{.XXConf}} {
 	return s[key]
 }

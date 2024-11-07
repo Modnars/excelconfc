@@ -62,7 +62,7 @@ func writeMessage(wr io.Writer, rootNode mcc.ASTNode) error {
 		msgFieldNo := 0
 		for _, field := range message.SubNodes() {
 			msgFieldNo++
-			if field.LexVal() == lex.MID_NODE_VEC {
+			if lex.IsRepeatedLex(field.LexVal()) {
 				fmt.Fprintf(wr, "%srepeated %s %s = %d;\n", util.IndentSpace(indent), field.Type(), field.Name(), msgFieldNo)
 			} else {
 				fmt.Fprintf(wr, "%s%s %s = %d;\n", util.IndentSpace(indent), field.Type(), field.Name(), msgFieldNo)

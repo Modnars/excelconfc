@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/xuri/excelize/v2"
+
 	"git.woa.com/modnarshen/excelconfc/lex"
 	"git.woa.com/modnarshen/excelconfc/rules"
 	"git.woa.com/modnarshen/excelconfc/util"
-	"github.com/xuri/excelize/v2"
 )
 
 const (

@@ -16,6 +16,7 @@ type NodeInfo interface {
 	SetName(string) NodeInfo
 	Type() string
 	SetType(string) NodeInfo
+	Desc() string
 	ColIdx() int
 	GroupFlag() uint8
 	SetGroupFlag(uint8) NodeInfo
@@ -33,6 +34,7 @@ type astNode struct {
 	subNodes  []ASTNode
 	name      string
 	nodeType  string
+	desc      string
 	colIdx    int
 	groupFlag uint8
 }
@@ -57,6 +59,10 @@ func (n *astNode) Type() string {
 func (n *astNode) SetType(nodeType string) NodeInfo {
 	n.nodeType = nodeType
 	return n
+}
+
+func (n *astNode) Desc() string {
+	return n.desc
 }
 
 func (n *astNode) ColIdx() int {
@@ -85,8 +91,15 @@ func (n *astNode) String() string {
 	return fmt.Sprintf("%s name:%s type:%s colIdx:%d group:%b", n.lexVal, n.name, n.nodeType, n.colIdx, n.groupFlag)
 }
 
-func NewASTNode(lexVal string, name string, nodeType string, colIdx int, groupFlag uint8) ASTNode {
-	return &astNode{lexVal: lexVal, name: name, nodeType: nodeType, colIdx: colIdx, groupFlag: groupFlag}
+func NewASTNode(lexVal string, name string, nodeType, desc string, colIdx int, groupFlag uint8) ASTNode {
+	return &astNode{
+		lexVal:    lexVal,
+		name:      name,
+		nodeType:  nodeType,
+		desc:      desc,
+		colIdx:    colIdx,
+		groupFlag: groupFlag,
+	}
 }
 
 func NewMiddleASTNode(lexVal string) ASTNode {

@@ -13,7 +13,7 @@ func extractCellVal(cell string, asType string) (any, error) {
 	case TOK_TYPE_STRING, TOK_TYPE_DATETIME:
 		return cell, nil
 	case TOK_TYPE_BOOL:
-		if cell == "" || cell == "0" || cell == MARK_VAL_FALSE {
+		if cell == "" || cell == "0" || cell == TOK_VAL_FALSE {
 			return false, nil
 		} else {
 			return true, nil

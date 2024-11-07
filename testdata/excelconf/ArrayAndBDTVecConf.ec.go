@@ -7,19 +7,20 @@ package excelconf
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"os"
 )
 
 type IntStruct struct {
-	IVec   []int32 `json:"iVec,omitempty"`
-	IArray int32   `json:"iArray,omitempty"`
+	IVec   []int32 `json:"i_vec,omitempty" xml:"i_vec>item"`
+	IArray []int32 `json:"i_array,omitempty" xml:"i_array>item"`
 }
 
 type ArrayAndBDTVecConf struct {
-	Id        int32       `json:"id,omitempty"`
-	IntVec    []int32     `json:"intVec,omitempty"`
-	IntArray  int32       `json:"intArray,omitempty"`
-	IntStruct []IntStruct `json:"intStruct,omitempty"`
+	Id         int32       `json:"id,omitempty" xml:"id"`
+	IntVec     []int32     `json:"int_vec,omitempty" xml:"int_vec>item"`
+	IntArray   []int32     `json:"int_array,omitempty" xml:"int_array>item"`
+	IntStructs []IntStruct `json:"int_structs,omitempty" xml:"int_structs>item"`
 }
 
 type ArrayAndBDTVecConfMap map[int32]*ArrayAndBDTVecConf
@@ -35,6 +36,23 @@ func (s ArrayAndBDTVecConfMap) LoadFromJsonFile(filePath string) error {
 	json.Unmarshal(fileBytes, &jsonData)
 	for _, conf := range jsonData.Data {
 		s[conf.Id] = &conf
+	}
+	return nil
+}
+
+func (s ArrayAndBDTVecConfMap) LoadFromXmlFile(filePath string) error {
+	fileBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	xmlData := struct {
+		Data []*ArrayAndBDTVecConf `xml:"all_infos>item"`
+	}{}
+	if err := xml.Unmarshal(fileBytes, &xmlData); err != nil {
+		return err
+	}
+	for _, conf := range xmlData.Data {
+		s[conf.Id] = conf
 	}
 	return nil
 }
