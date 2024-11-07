@@ -46,7 +46,9 @@ func (s NestFieldsTestConfMap) LoadFromJsonFile(filePath string) error {
 	jsonData := struct {
 		Data []NestFieldsTestConf `json:"data"`
 	}{}
-	json.Unmarshal(fileBytes, &jsonData)
+	if err := json.Unmarshal(fileBytes, &jsonData); err != nil {
+		return err
+	}
 	for _, conf := range jsonData.Data {
 		s[conf.Id] = &conf
 	}

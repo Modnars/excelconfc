@@ -19,12 +19,24 @@ func extractCellVal(cell string, asType string) (any, error) {
 			return true, nil
 		}
 	case TOK_TYPE_INT32:
+		if cell == "" {
+			return int32(0), nil
+		}
 		return strconv.ParseInt(cell, 10, 32)
 	case TOK_TYPE_UINT32:
+		if cell == "" {
+			return uint32(0), nil
+		}
 		return strconv.ParseUint(cell, 10, 32)
 	case TOK_TYPE_INT64:
+		if cell == "" {
+			return int64(0), nil
+		}
 		return strconv.ParseInt(cell, 10, 64)
 	case TOK_TYPE_UINT64:
+		if cell == "" {
+			return uint64(0), nil
+		}
 		return strconv.ParseUint(cell, 10, 64)
 	}
 	return cell, nil

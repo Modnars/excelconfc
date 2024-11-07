@@ -61,8 +61,6 @@ var (
 	_BOOL_TYPES   = util.NewSet(TOK_TYPE_BOOL)
 	_INT_TYPES    = util.NewSet(TOK_TYPE_INT32, TOK_TYPE_INT64, TOK_TYPE_UINT32, TOK_TYPE_UINT64)
 	_STRING_TYPES = util.NewSet(TOK_TYPE_STRING)
-
-	_LEX_BDT = util.NewSet(LEX_BOOL, LEX_ENUM, LEX_INT, LEX_STRING)
 )
 
 func IsBasicType(tok Token) bool {

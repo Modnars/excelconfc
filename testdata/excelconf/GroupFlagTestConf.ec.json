@@ -28,9 +28,9 @@
         }
       ],
       "hot_update_item": {
+        "desc": "Eat and sleep.",
         "task_id": 200,
-        "new_task_id": 203,
-        "desc": "Eat and sleep."
+        "new_task_id": 203
       }
     }
   ]

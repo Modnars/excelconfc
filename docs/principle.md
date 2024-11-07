@@ -64,7 +64,7 @@ excelize 的 `func (f *excelize.File) GetRows(sheet string, opts ...excelize.Opt
 | {ActType}活动类型 | | | |
 | [活动类型]签到活动 | 1 | ACT\_TYPE\_CHECK\_IN |
 | [活动类型]登录活动 | 2 | ACT\_TYPE\_LOG\_IN |
-| | | | |
+|   |   |   |   |
 | {TaskType}任务类型 | | | |
 | Label | ID | Name | NOTES |
 | [任务类型]登录 | 1 | TASK\_TYPE\_LOG\_IN | 登录任务 |

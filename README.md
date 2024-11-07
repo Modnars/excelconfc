@@ -92,3 +92,5 @@ package excelconf
 ## 其他文档
 
 1. [设计原理](./docs/principle.md)
+2. [excelconfc 解析文法](./docs/excelconfc.mini.txt)
+3. [excelconfc 性能测试数据](./docs/perf-data.md)

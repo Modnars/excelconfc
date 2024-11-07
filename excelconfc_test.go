@@ -19,11 +19,11 @@ func TestExcelconfcCmd(t *testing.T) {
 	require.Equal(t, nil, err, "build excelconfc should be succeed")
 	require.Equal(t, 0, len(output), "len(output) should be 0")
 
-	output, err = exec.Command("rm", "-rf", "./output").Output()
+	output, err = exec.Command("rm", "-rf", "./testdata/output").Output()
 	require.Equal(t, nil, err)
 	require.Equal(t, 0, len(output))
 
-	output, err = exec.Command("mkdir", "-p", "./output").Output()
+	output, err = exec.Command("mkdir", "-p", "./testdata/output").Output()
 	require.Equal(t, nil, err)
 	require.Equal(t, 0, len(output))
 
@@ -74,6 +74,44 @@ func TestExcelconfcCmd(t *testing.T) {
 		t.Logf("sheet: %s passed", testSheetName)
 	}
 }
+
+// func TestExecCmd(t *testing.T) {
+// 	cmd := exec.Command("go", "build")
+// 	output, err := cmd.Output()
+// 	require.Equal(t, nil, err, "build excelconfc should be succeed")
+// 	require.Equal(t, 0, len(output), "len(output) should be 0")
+
+// 	output, err = exec.Command("rm", "-rf", "./testdata/output").Output()
+// 	require.Equal(t, nil, err)
+// 	require.Equal(t, 0, len(output))
+
+// 	output, err = exec.Command("mkdir", "-p", "./testdata/output").Output()
+// 	require.Equal(t, nil, err)
+// 	require.Equal(t, 0, len(output))
+
+// 	testSheetNames := []string{`ActConf`, `ActTaskConf`, `ArrayAndBDTVecConf`, `GroupFlagTestConf`, `NestFieldsTestConf`}
+// 	appendArguments := [][]string{{`-add_enum`}, {}, {}, {}, {}}
+// 	for i, testSheetName := range testSheetNames {
+// 		baseArgs := []string{
+// 			`-excel=./testdata/ExcelConfTest.xlsx`,
+// 			`-sheet=` + testSheetName,
+// 			`-go_package=git.woa.com/modnarshen/uasvr-go/configs/excelconf;excelconf`,
+// 			`-json_out=./testdata/output`,
+// 			`-go_out=./testdata/output`,
+// 			`-proto_out=./testdata/output`,
+// 			`-xml_out=./testdata/output`,
+// 			`--group=server`,
+// 		}
+
+// 		args := append(baseArgs, appendArguments[i]...)
+// 		cmd1 := exec.Command(`./excelconfc`, args...)
+// 		output, err = cmd1.Output()
+// 		require.Equal(t, nil, err, "execute result should be success, command: %s", strings.Join(cmd1.Args, " "))
+// 		require.Equal(t, 0, len(output), "len(output) should be 0")
+
+// 		t.Logf("sheet: %s passed", testSheetName)
+// 	}
+// }
 
 func TestLoadFromJson(t *testing.T) {
 	jsonFileDir := `./testdata/excelconf/`
@@ -126,3 +164,21 @@ func TestLoadFromXml(t *testing.T) {
 	require.Greater(t, len(excelconf.GetNestFieldsTestConfMapInst()), 0)
 	require.Equal(t, "20002", excelconf.GetNestFieldsTestConfMapInst().GetVal(2).A[0].AA[0].Aa2)
 }
+
+// func TestLoadFromHugeJson(t *testing.T) {
+// 	jsonFileDir := `./testdata/excelconf/`
+
+// 	err := excelconf.GetSheet1MapInst().LoadFromJsonFile(jsonFileDir + `Sheet1.ec.json`)
+// 	require.Equal(t, nil, err)
+// 	require.Greater(t, len(excelconf.GetSheet1MapInst()), 0)
+// 	t.Logf("data num: %d", len(excelconf.GetSheet1MapInst()))
+// }
+
+// func TestLoadFromHugeXml(t *testing.T) {
+// 	xmlFileDir := `./testdata/excelconf/`
+
+// 	err := excelconf.GetSheet1MapInst().LoadFromXmlFile(xmlFileDir + `Sheet1.ec.xml`)
+// 	require.Equal(t, nil, err)
+// 	require.Greater(t, len(excelconf.GetSheet1MapInst()), 0)
+// 	t.Logf("data num: %d", len(excelconf.GetSheet1MapInst()))
+// }

@@ -38,7 +38,9 @@ func (s GroupFlagTestConfMap) LoadFromJsonFile(filePath string) error {
 	jsonData := struct {
 		Data []GroupFlagTestConf `json:"data"`
 	}{}
-	json.Unmarshal(fileBytes, &jsonData)
+	if err := json.Unmarshal(fileBytes, &jsonData); err != nil {
+		return err
+	}
 	for _, conf := range jsonData.Data {
 		s[conf.Id] = &conf
 	}
