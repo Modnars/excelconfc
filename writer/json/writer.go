@@ -47,6 +47,9 @@ func buildLineData(astNode mcc.ASTNode, rowData []string, evm lex.EVM) (map[stri
 				}
 			} else {
 				for _, ssubNode := range subNode.SubNodes() {
+					if writer.CanBeOmitted(ssubNode, rowData) {
+						continue
+					}
 					val, err := buildLineData(ssubNode, rowData, evm)
 					if err != nil {
 						return nil, err

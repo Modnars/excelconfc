@@ -3,6 +3,8 @@ package writer
 import (
 	"fmt"
 	"os"
+
+	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
 )
 
 func genOutFilePath(outDir string, fileName string, fileSuffix string) string {
@@ -26,4 +28,16 @@ func WriteToFile(outDir string, fileName string, fileSuffix string, writeBytes [
 		return fmt.Errorf("write file failed -> %w", err)
 	}
 	return nil
+}
+
+func CanBeOmitted(node mcc.ASTNode, rowData []string) bool {
+	if len(node.SubNodes()) == 0 {
+		return node.ColIdx() >= len(rowData) || rowData[node.ColIdx()] == ""
+	}
+	for _, subNode := range node.SubNodes() {
+		if !CanBeOmitted(subNode, rowData) {
+			return false
+		}
+	}
+	return true
 }

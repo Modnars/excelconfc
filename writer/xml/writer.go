@@ -54,6 +54,9 @@ func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm lex.
 				}
 			} else {
 				for _, ssubNode := range subNode.SubNodes() {
+					if writer.CanBeOmitted(ssubNode, rowData) {
+						continue
+					}
 					fmt.Fprintf(wr, "%s<item>\n", util.IndentSpace(indent))
 					indent++
 					if err := writeLineData(wr, ssubNode, rowData, evm, indent); err != nil {

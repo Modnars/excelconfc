@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	reEnumDeclType *regexp.Regexp
+	reEnumDeclType = regexp.MustCompile(patternEnumDeclType)
 )
 
 func readDataSheet(xlsxFile *excelize.File, dataSheetName string) ([][]string, [][]string, error) {
@@ -107,8 +107,4 @@ func ReadFile(filePath string, sheetName string, enumSheetName string) (lex.Data
 		headers, data,
 		enumTypes, enumValMap,
 	), nil
-}
-
-func init() {
-	reEnumDeclType = regexp.MustCompile(patternEnumDeclType)
 }
