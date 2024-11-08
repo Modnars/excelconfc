@@ -1,17 +1,17 @@
 {
   "data": [
     {
-      "task_id": 1010001,
-      "title": "累积登录",
-      "target_id": 101000101,
-      "target_type": 1,
       "progress": 1,
       "awards": [
         {
-          "num": 1,
-          "item_id": 2010001
+          "item_id": 2010001,
+          "num": 1
         }
-      ]
+      ],
+      "task_id": 1010001,
+      "title": "累积登录",
+      "target_id": 101000101,
+      "target_type": 1
     },
     {
       "task_id": 1010002,
@@ -21,8 +21,8 @@
       "progress": 2,
       "awards": [
         {
-          "num": 2,
-          "item_id": 2010001
+          "item_id": 2010001,
+          "num": 2
         }
       ]
     },
@@ -40,56 +40,56 @@
       ]
     },
     {
-      "progress": 4,
-      "awards": [
-        {
-          "num": 8,
-          "item_id": 2010001
-        }
-      ],
       "task_id": 1010004,
       "title": "累积登录",
       "target_id": 101000401,
-      "target_type": 1
+      "target_type": 1,
+      "progress": 4,
+      "awards": [
+        {
+          "item_id": 2010001,
+          "num": 8
+        }
+      ]
     },
     {
+      "task_id": 1010005,
+      "title": "累积登录",
+      "target_id": 101000501,
+      "target_type": 1,
+      "progress": 5,
       "awards": [
         {
           "item_id": 2010001,
           "num": 16
         }
-      ],
-      "task_id": 1010005,
-      "title": "累积登录",
-      "target_id": 101000501,
-      "target_type": 1,
-      "progress": 5
+      ]
     },
     {
-      "progress": 6,
-      "awards": [
-        {
-          "item_id": 2010001,
-          "num": 32
-        }
-      ],
       "task_id": 1010006,
       "title": "累积登录",
       "target_id": 101000601,
-      "target_type": 1
-    },
-    {
-      "progress": 7,
+      "target_type": 1,
+      "progress": 6,
       "awards": [
         {
-          "num": 64,
+          "num": 32,
           "item_id": 2010001
         }
-      ],
+      ]
+    },
+    {
       "task_id": 1010007,
       "title": "累积登录",
       "target_id": 101000701,
-      "target_type": 1
+      "target_type": 1,
+      "progress": 7,
+      "awards": [
+        {
+          "item_id": 2010001,
+          "num": 64
+        }
+      ]
     }
   ]
 }

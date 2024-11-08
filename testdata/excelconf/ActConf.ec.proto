@@ -26,6 +26,11 @@ enum ActTaskTargetType {
     ACT_TASK_TAR_TYPE_LOGIN = 1;
 }
 
+enum ExtTypeConf {
+    EXT_TYPE_PKG_PROB = 1;
+    EXT_TYPE_NUM = 2;
+}
+
 message ActConf {
     uint32 act_id = 1;
     string title = 2;

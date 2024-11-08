@@ -14,6 +14,7 @@ import (
 type ActType int32
 type OpenCond int32
 type ActTaskTargetType int32
+type ExtTypeConf int32
 
 const (
 	ACT_TYPE_CHECK_IN ActType = 1
@@ -26,6 +27,9 @@ const (
 	OPEN_COND_C OpenCond = 3
 
 	ACT_TASK_TAR_TYPE_LOGIN ActTaskTargetType = 1
+
+	EXT_TYPE_PKG_PROB ExtTypeConf = 1
+	EXT_TYPE_NUM      ExtTypeConf = 2
 )
 
 var (
@@ -59,6 +63,15 @@ var (
 	ActTaskTargetType_value = map[string]int32{
 		"ACT_TASK_TAR_TYPE_LOGIN": 1,
 	}
+
+	ExtTypeConf_name = map[int32]string{
+		1: "EXT_TYPE_PKG_PROB",
+		2: "EXT_TYPE_NUM",
+	}
+	ExtTypeConf_value = map[string]int32{
+		"EXT_TYPE_PKG_PROB": 1,
+		"EXT_TYPE_NUM":      2,
+	}
 )
 
 func (x ActType) String() string {
@@ -71,6 +84,10 @@ func (x OpenCond) String() string {
 
 func (x ActTaskTargetType) String() string {
 	return ActTaskTargetType_name[int32(x)]
+}
+
+func (x ExtTypeConf) String() string {
+	return ExtTypeConf_name[int32(x)]
 }
 
 type ActConf struct {

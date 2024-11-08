@@ -27,8 +27,9 @@ func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm lex.
 	}
 
 	for _, subNode := range astNode.SubNodes() {
-		if subNode.ColIdx() >= len(rowData) {
-			return nil
+		cell := ""
+		if subNode.ColIdx() < len(rowData) {
+			cell = rowData[subNode.ColIdx()]
 		}
 
 		switch subNode.LexVal() {
@@ -46,6 +47,9 @@ func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm lex.
 			indent++
 			if lex.IsBasicType(subNode.Type()) {
 				for _, ssubNode := range subNode.SubNodes() {
+					if writer.CanBeOmitted(ssubNode, rowData) {
+						continue
+					}
 					val, err := lex.CellValue(ssubNode, rowData[ssubNode.ColIdx()], evm)
 					if err != nil {
 						return err
@@ -70,7 +74,7 @@ func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm lex.
 			fmt.Fprintf(wr, "%s</%s>\n", util.IndentSpace(indent), subNode.Name())
 
 		case lex.LEX_ARRAY:
-			val, err := lex.CellValue(subNode, rowData[subNode.ColIdx()], evm)
+			val, err := lex.CellValue(subNode, cell, evm)
 			if err != nil {
 				return err
 			}
@@ -83,7 +87,7 @@ func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm lex.
 			}
 
 		default:
-			val, err := lex.CellValue(subNode, rowData[subNode.ColIdx()], evm)
+			val, err := lex.CellValue(subNode, cell, evm)
 			if err != nil {
 				return err
 			}

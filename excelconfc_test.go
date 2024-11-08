@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"os"
 	"os/exec"
 	"reflect"
@@ -11,6 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 
 	excelconf "git.woa.com/modnarshen/excelconfc/testdata/excelconf"
+)
+
+var (
+	runInitTests = flag.Bool("runinit", false, "init testcase standard output templates")
 )
 
 func TestExcelconfcCmd(t *testing.T) {
@@ -27,8 +32,8 @@ func TestExcelconfcCmd(t *testing.T) {
 	require.Equal(t, nil, err)
 	require.Equal(t, 0, len(output))
 
-	testSheetNames := []string{`ActConf`, `ActTaskConf`, `ArrayAndBDTVecConf`, `GroupFlagTestConf`, `NestFieldsTestConf`}
-	appendArguments := [][]string{{`-add_enum`}, {}, {}, {}, {}}
+	testSheetNames := []string{`ActConf`, `ActTaskConf`, `ArrayAndBDTVecConf`, `GroupFlagTestConf`, `NestFieldsTestConf`, `OmittedDataTestConf`}
+	appendArguments := [][]string{{`-add_enum`}, {}, {}, {}, {}, {}}
 	for i, testSheetName := range testSheetNames {
 		baseArgs := []string{
 			`-excel=./testdata/ExcelConfTest.xlsx`,
@@ -57,6 +62,11 @@ func TestExcelconfcCmd(t *testing.T) {
 		require.Equal(t, nil, err, "execute result should be success, command: %s", strings.Join(cmd3.Args, " "))
 		require.Equal(t, 0, len(output), "len(output) should be 0")
 
+		cmd4 := exec.Command(`diff`, `./testdata/output/`+testSheetName+`.ec.xml`, `./testdata/excelconf/`+testSheetName+`.ec.xml`)
+		output, err = cmd4.Output()
+		require.Equal(t, nil, err, "execute result should be success, command: %s", strings.Join(cmd4.Args, " "))
+		require.Equal(t, 0, len(output), "len(output) should be 0")
+
 		outFileBytes, err := os.ReadFile(`./testdata/output/` + testSheetName + `.ec.json`)
 		require.Equal(t, nil, err)
 		obj1 := map[string]any{}
@@ -69,49 +79,53 @@ func TestExcelconfcCmd(t *testing.T) {
 		err = json.Unmarshal(stdFileBytes, &obj2)
 		require.Equal(t, nil, err)
 
-		require.True(t, reflect.DeepEqual(obj1, obj2))
+		require.True(t, reflect.DeepEqual(obj1, obj2), "\n-> obj1: %v\n-> obj2: %v", obj1, obj2)
 
 		t.Logf("sheet: %s passed", testSheetName)
 	}
 }
 
-// func TestExecCmd(t *testing.T) {
-// 	cmd := exec.Command("go", "build")
-// 	output, err := cmd.Output()
-// 	require.Equal(t, nil, err, "build excelconfc should be succeed")
-// 	require.Equal(t, 0, len(output), "len(output) should be 0")
+func TestExecCmd(t *testing.T) {
+	if !*runInitTests {
+		t.Skip("skipping init-running test; use -runinit to run")
+	}
 
-// 	output, err = exec.Command("rm", "-rf", "./testdata/output").Output()
-// 	require.Equal(t, nil, err)
-// 	require.Equal(t, 0, len(output))
+	cmd := exec.Command("go", "build")
+	output, err := cmd.Output()
+	require.Equal(t, nil, err, "build excelconfc should be succeed")
+	require.Equal(t, 0, len(output), "len(output) should be 0")
 
-// 	output, err = exec.Command("mkdir", "-p", "./testdata/output").Output()
-// 	require.Equal(t, nil, err)
-// 	require.Equal(t, 0, len(output))
+	output, err = exec.Command("rm", "-rf", "./testdata/output").Output()
+	require.Equal(t, nil, err)
+	require.Equal(t, 0, len(output))
 
-// 	testSheetNames := []string{`ActConf`, `ActTaskConf`, `ArrayAndBDTVecConf`, `GroupFlagTestConf`, `NestFieldsTestConf`}
-// 	appendArguments := [][]string{{`-add_enum`}, {}, {}, {}, {}}
-// 	for i, testSheetName := range testSheetNames {
-// 		baseArgs := []string{
-// 			`-excel=./testdata/ExcelConfTest.xlsx`,
-// 			`-sheet=` + testSheetName,
-// 			`-go_package=git.woa.com/modnarshen/uasvr-go/configs/excelconf;excelconf`,
-// 			`-json_out=./testdata/output`,
-// 			`-go_out=./testdata/output`,
-// 			`-proto_out=./testdata/output`,
-// 			`-xml_out=./testdata/output`,
-// 			`--group=server`,
-// 		}
+	output, err = exec.Command("mkdir", "-p", "./testdata/output").Output()
+	require.Equal(t, nil, err)
+	require.Equal(t, 0, len(output))
 
-// 		args := append(baseArgs, appendArguments[i]...)
-// 		cmd1 := exec.Command(`./excelconfc`, args...)
-// 		output, err = cmd1.Output()
-// 		require.Equal(t, nil, err, "execute result should be success, command: %s", strings.Join(cmd1.Args, " "))
-// 		require.Equal(t, 0, len(output), "len(output) should be 0")
+	testSheetNames := []string{`ActConf`, `ActTaskConf`, `ArrayAndBDTVecConf`, `GroupFlagTestConf`, `NestFieldsTestConf`, `OmittedDataTestConf`}
+	appendArguments := [][]string{{`-add_enum`}, {}, {}, {}, {}, {}}
+	for i, testSheetName := range testSheetNames {
+		baseArgs := []string{
+			`-excel=./testdata/ExcelConfTest.xlsx`,
+			`-sheet=` + testSheetName,
+			`-go_package=git.woa.com/modnarshen/uasvr-go/configs/excelconf;excelconf`,
+			`-json_out=./testdata/output`,
+			`-go_out=./testdata/output`,
+			`-proto_out=./testdata/output`,
+			`-xml_out=./testdata/output`,
+			`--group=server`,
+		}
 
-// 		t.Logf("sheet: %s passed", testSheetName)
-// 	}
-// }
+		args := append(baseArgs, appendArguments[i]...)
+		cmd1 := exec.Command(`./excelconfc`, args...)
+		output, err = cmd1.Output()
+		require.Equal(t, nil, err, "execute result should be success, command: %s", strings.Join(cmd1.Args, " "))
+		require.Equal(t, 0, len(output), "len(output) should be 0")
+
+		t.Logf("sheet: %s passed", testSheetName)
+	}
+}
 
 func TestLoadFromJson(t *testing.T) {
 	jsonFileDir := `./testdata/excelconf/`
@@ -182,3 +196,10 @@ func TestLoadFromXml(t *testing.T) {
 // 	require.Greater(t, len(excelconf.GetSheet1MapInst()), 0)
 // 	t.Logf("data num: %d", len(excelconf.GetSheet1MapInst()))
 // }
+
+func TestMain(m *testing.M) {
+	if !flag.Parsed() {
+		flag.Parse()
+	}
+	m.Run()
+}

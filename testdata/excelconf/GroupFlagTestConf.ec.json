@@ -18,6 +18,7 @@
       "act_id": 111
     },
     {
+      "act_id": 0,
       "id": 2,
       "task_ref_vec": [
         {
@@ -28,9 +29,9 @@
         }
       ],
       "hot_update_item": {
-        "desc": "Eat and sleep.",
         "task_id": 200,
-        "new_task_id": 203
+        "new_task_id": 203,
+        "desc": "Eat and sleep."
       }
     }
   ]

@@ -69,3 +69,11 @@ excelize 的 `func (f *excelize.File) GetRows(sheet string, opts ...excelize.Opt
 | Label | ID | Name | NOTES |
 | [任务类型]登录 | 1 | TASK\_TYPE\_LOG\_IN | 登录任务 |
 | [任务类型]等级 | 2 | TASK\_TYPE\_LEVEL | 等级满足指定条件 |
+
+## 维护与更新日志
+
+### 2024.11.08 更新规则
+
+如果元素是 repeated 元素，包括 vector 和 array 类型，如果某个元素是空白未定义的，则**不将其加入到线性表中（数组中）**。参考 OmittedDataTestConf 中配置。因此，如果一个数组字段值中没有任何元素，那么这个字段本身依然存在，只是这个字段值是一个空列表。
+
+如果元素本身不是 repeated 元素，则**会尝试为其分配默认值**。比如 int 型字段的默认值就是 0，string 型字段的默认值就是空串。

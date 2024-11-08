@@ -23,9 +23,9 @@ func buildLineData(astNode mcc.ASTNode, rowData []string, evm lex.EVM) (map[stri
 
 	result := make(map[string]any)
 	for _, subNode := range astNode.SubNodes() {
-		if subNode.ColIdx() >= len(rowData) {
-			break
-		}
+		// if subNode.ColIdx() >= len(rowData) {
+		// 	break
+		// }
 
 		switch subNode.LexVal() {
 		case lex.MID_NODE_FIELDS:
@@ -39,6 +39,9 @@ func buildLineData(astNode mcc.ASTNode, rowData []string, evm lex.EVM) (map[stri
 			vec := []any{}
 			if lex.IsBasicType(subNode.Type()) {
 				for _, ssubNode := range subNode.SubNodes() {
+					if writer.CanBeOmitted(ssubNode, rowData) {
+						continue
+					}
 					val, err := lex.CellValue(ssubNode, rowData[ssubNode.ColIdx()], evm)
 					if err != nil {
 						return nil, fmt.Errorf("col:%s -> %w", util.ColumnName(ssubNode.ColIdx()), err)
@@ -60,7 +63,11 @@ func buildLineData(astNode mcc.ASTNode, rowData []string, evm lex.EVM) (map[stri
 			result[subNode.Name()] = vec
 
 		default:
-			val, err := lex.CellValue(subNode, rowData[subNode.ColIdx()], evm)
+			cell := ""
+			if subNode.ColIdx() < len(rowData) {
+				cell = rowData[subNode.ColIdx()]
+			}
+			val, err := lex.CellValue(subNode, cell, evm)
 			if err != nil {
 				return nil, fmt.Errorf("col:%s -> %w", util.ColumnName(subNode.ColIdx()), err)
 			}
