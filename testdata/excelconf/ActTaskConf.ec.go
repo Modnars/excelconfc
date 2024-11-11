@@ -33,13 +33,13 @@ func (s ActTaskConfMap) LoadFromJsonFile(filePath string) error {
 		return err
 	}
 	jsonData := struct {
-		Data []ActTaskConf `json:"data"`
+		Data []*ActTaskConf `json:"data"`
 	}{}
 	if err := json.Unmarshal(fileBytes, &jsonData); err != nil {
 		return err
 	}
 	for _, conf := range jsonData.Data {
-		s[conf.TaskId] = &conf
+		s[conf.TaskId] = conf
 	}
 	return nil
 }

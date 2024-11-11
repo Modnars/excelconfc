@@ -16,6 +16,7 @@ const (
 	TmplGoCodeImport      = codeTmplType("golang.code.import.tmpl")
 	TmplGoCodeDefDateTime = codeTmplType("golang.code.def.datetime.tmpl")
 	TmplGoCodeConfMap     = codeTmplType("golang.code.confmap.tmpl")
+	TmplGoCodeConfVec     = codeTmplType("golang.code.confvec.tmpl")
 
 	TmplProtoCodePackage = codeTmplType("proto.code.package.tmpl")
 	TmplProtoComments    = codeTmplType("proto.comments.tmpl")

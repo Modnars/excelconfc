@@ -38,6 +38,8 @@ type DataHolder interface {
 	EnumValMap() EVM
 	AST() mcc.ASTNode
 	SetAST(mcc.ASTNode)
+	ContainerType() uint8
+	SetContainerType(uint8)
 }
 
 type dataHolder struct {
@@ -48,6 +50,7 @@ type dataHolder struct {
 	enumTypes  []*EnumTypeSt
 	enumValMap EVM
 	astRoot    mcc.ASTNode
+	cntrType   uint8
 }
 
 func (h *dataHolder) FileName() string {
@@ -80,6 +83,14 @@ func (h *dataHolder) AST() mcc.ASTNode {
 
 func (h *dataHolder) SetAST(astRoot mcc.ASTNode) {
 	h.astRoot = astRoot
+}
+
+func (h *dataHolder) SetContainerType(containerType uint8) {
+	h.cntrType = containerType
+}
+
+func (h *dataHolder) ContainerType() uint8 {
+	return h.cntrType
 }
 
 var _ DataHolder = (*dataHolder)(nil)

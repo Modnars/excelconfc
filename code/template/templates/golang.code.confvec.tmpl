@@ -1,0 +1,45 @@
+
+type {{.XXConfVec}} []*{{.XXConf}}
+
+func (s *{{.XXConfVec}}) LoadFromJsonFile(filePath string) error {
+	fileBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	jsonData := struct {
+		Data []*{{.XXConf}} `json:"data"`
+	}{}
+	if err := json.Unmarshal(fileBytes, &jsonData); err != nil {
+		return err
+	}
+    *s = jsonData.Data
+	return nil
+}
+
+func (s *{{.XXConfVec}}) LoadFromXmlFile(filePath string) error {
+	fileBytes, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+	xmlData := struct {
+		Data []*{{.XXConf}} `xml:"all_infos>item"`
+	}{}
+	if err := xml.Unmarshal(fileBytes, &xmlData); err != nil {
+		return err
+	}
+    *s = xmlData.Data
+	return nil
+}
+
+func (s {{.XXConfVec}}) GetVal(idx int) *{{.XXConf}} {
+    if idx >= len(s) {
+        return nil
+    }
+	return s[idx]
+}
+
+var instance{{.XXConfVec}} = make({{.XXConfVec}}, 0)
+
+func Get{{.XXConfVec}}Inst() {{.XXConfVec}} {
+	return instance{{.XXConfVec}}
+}

@@ -106,13 +106,13 @@ func (s ActConfMap) LoadFromJsonFile(filePath string) error {
 		return err
 	}
 	jsonData := struct {
-		Data []ActConf `json:"data"`
+		Data []*ActConf `json:"data"`
 	}{}
 	if err := json.Unmarshal(fileBytes, &jsonData); err != nil {
 		return err
 	}
 	for _, conf := range jsonData.Data {
-		s[conf.ActId] = &conf
+		s[conf.ActId] = conf
 	}
 	return nil
 }

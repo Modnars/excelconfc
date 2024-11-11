@@ -159,6 +159,21 @@ func writeStructMap(wr io.Writer, astRoot mcc.ASTNode, sheetName string) error {
 	return nil
 }
 
+func writeStructVec(wr io.Writer, astRoot mcc.ASTNode, sheetName string) error {
+	confKeyType, confKeyField := genGoConfKeyInfo(astRoot)
+	tmplParams := template.T{
+		"XXConf":         sheetName,
+		"XXConfVec":      sheetName + "Vec",
+		"XXConfKeyType":  confKeyType,
+		"XXConfKeyField": confKeyField,
+	}
+
+	if err := template.ExecuteTemplate(wr, template.TmplGoCodeConfVec, tmplParams); err != nil {
+		return fmt.Errorf("exectue template failed|tmplName:%s -> %w", template.TmplGoCodeConfVec, err)
+	}
+	return nil
+}
+
 func outputDefFile(goPackage string, outDir string) error {
 	var wr strings.Builder
 	if err := writeFileComments(&wr, "", ""); err != nil {
@@ -243,8 +258,16 @@ func outputSrcFile(data lex.DataHolder, goPackage string, outDir string, addEnum
 	if err := writeStruct(wr, data); err != nil {
 		return fmt.Errorf("generate Conf Go code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
 	}
-	if err := writeStructMap(wr, data.AST(), data.SheetName()); err != nil {
-		return fmt.Errorf("generate ConfMap Go code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
+	switch data.ContainerType() {
+	case rules.CONTAINER_TYPE_MAP:
+		if err := writeStructMap(wr, data.AST(), data.SheetName()); err != nil {
+			return fmt.Errorf("generate ConfMap Go code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
+		}
+
+	case rules.CONTAINER_TYPE_VECTOR:
+		if err := writeStructVec(wr, data.AST(), data.SheetName()); err != nil {
+			return fmt.Errorf("generate ConfMap Go code failed|file:%s|sheet:%s -> %w", data.FileName(), data.SheetName(), err)
+		}
 	}
 
 	outBytes, err := toOutBytes(wr.String())

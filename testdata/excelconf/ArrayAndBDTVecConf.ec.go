@@ -31,13 +31,13 @@ func (s ArrayAndBDTVecConfMap) LoadFromJsonFile(filePath string) error {
 		return err
 	}
 	jsonData := struct {
-		Data []ArrayAndBDTVecConf `json:"data"`
+		Data []*ArrayAndBDTVecConf `json:"data"`
 	}{}
 	if err := json.Unmarshal(fileBytes, &jsonData); err != nil {
 		return err
 	}
 	for _, conf := range jsonData.Data {
-		s[conf.Id] = &conf
+		s[conf.Id] = conf
 	}
 	return nil
 }

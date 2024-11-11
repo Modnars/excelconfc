@@ -7,13 +7,13 @@ func (s {{.XXConfMap}}) LoadFromJsonFile(filePath string) error {
 		return err
 	}
 	jsonData := struct {
-		Data []{{.XXConf}} `json:"data"`
+		Data []*{{.XXConf}} `json:"data"`
 	}{}
 	if err := json.Unmarshal(fileBytes, &jsonData); err != nil {
 		return err
 	}
 	for _, conf := range jsonData.Data {
-		s[conf.{{.XXConfKeyField}}] = &conf
+		s[conf.{{.XXConfKeyField}}] = conf
 	}
 	return nil
 }

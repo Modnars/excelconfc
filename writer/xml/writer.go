@@ -99,7 +99,16 @@ func writeLineData(wr io.Writer, astNode mcc.ASTNode, rowData []string, evm lex.
 
 func writeAllLineData(wr io.Writer, data lex.DataHolder) error {
 	indent := 0
-	fmt.Fprintf(wr, "<%sMap>\n<all_infos>\n", data.SheetName())
+	headLabel := data.SheetName()
+
+	switch data.ContainerType() {
+	case rules.CONTAINER_TYPE_MAP:
+		headLabel += "Map"
+	case rules.CONTAINER_TYPE_VECTOR:
+		headLabel += "Vector"
+	}
+
+	fmt.Fprintf(wr, "<%s>\n<all_infos>\n", headLabel)
 	indent++
 	for i, rowData := range data.Data() {
 		fmt.Fprintf(wr, "%s<item>\n", util.IndentSpace(indent))
@@ -109,7 +118,8 @@ func writeAllLineData(wr io.Writer, data lex.DataHolder) error {
 		fmt.Fprintf(wr, "%s</item>\n", util.IndentSpace(indent))
 	}
 	indent--
-	fmt.Fprintf(wr, "</all_infos>\n</%sMap>\n", data.SheetName())
+	fmt.Fprintf(wr, "</all_infos>\n</%s>\n", headLabel)
+
 	return nil
 }
 

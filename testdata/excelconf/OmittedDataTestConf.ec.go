@@ -31,13 +31,13 @@ func (s OmittedDataTestConfMap) LoadFromJsonFile(filePath string) error {
 		return err
 	}
 	jsonData := struct {
-		Data []OmittedDataTestConf `json:"data"`
+		Data []*OmittedDataTestConf `json:"data"`
 	}{}
 	if err := json.Unmarshal(fileBytes, &jsonData); err != nil {
 		return err
 	}
 	for _, conf := range jsonData.Data {
-		s[conf.GroupId] = &conf
+		s[conf.GroupId] = conf
 	}
 	return nil
 }

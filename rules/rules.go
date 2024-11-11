@@ -8,4 +8,8 @@ const (
 	ROW_HEAD_MAX = 4 // headers 的最大行数
 
 	DEFAULT_ENUM_SHEET_NAME = "ENUM_DESC" // 默认枚举定义表名
+
+	CONTAINER_TYPE_NONE   uint8 = 0b00
+	CONTAINER_TYPE_MAP    uint8 = 0b01
+	CONTAINER_TYPE_VECTOR uint8 = 0b10
 )

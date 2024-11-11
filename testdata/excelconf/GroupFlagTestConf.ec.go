@@ -36,13 +36,13 @@ func (s GroupFlagTestConfMap) LoadFromJsonFile(filePath string) error {
 		return err
 	}
 	jsonData := struct {
-		Data []GroupFlagTestConf `json:"data"`
+		Data []*GroupFlagTestConf `json:"data"`
 	}{}
 	if err := json.Unmarshal(fileBytes, &jsonData); err != nil {
 		return err
 	}
 	for _, conf := range jsonData.Data {
-		s[conf.Id] = &conf
+		s[conf.Id] = conf
 	}
 	return nil
 }

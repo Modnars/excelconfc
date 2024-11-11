@@ -28,6 +28,7 @@ func main() {
 	filePath := flag.String("excel", "", "target Excel config file path")
 	sheetName := flag.String("sheet", "", "target Excel config sheet")
 	enumSheet := flag.String("enum_sheet", rules.DEFAULT_ENUM_SHEET_NAME, "enum definition sheet")
+	containerLabel := flag.String("container", "map", "out data container type")
 	protoOutDir := flag.String("proto_out", "", "Generate Proto source file.")
 	goOutDir := flag.String("go_out", "", "Generate Go source file.")
 	jsonOutDir := flag.String("json_out", "", "Generate Json source file.")
@@ -66,6 +67,13 @@ func main() {
 	if err != nil {
 		util.LogError("exec ReadExcel failed|filePath:%s|sheetName:%s -> %v", *filePath, *sheetName, err)
 		os.Exit(1)
+	}
+
+	switch *containerLabel {
+	case "map":
+		xlsxData.SetContainerType(rules.CONTAINER_TYPE_MAP)
+	case "vec", "vector":
+		xlsxData.SetContainerType(rules.CONTAINER_TYPE_VECTOR)
 	}
 
 	if err := compiler.New(
