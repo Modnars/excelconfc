@@ -87,25 +87,25 @@ func main() {
 
 	if *protoOutDir != "" {
 		if err := protobuf.WriteToFile(xlsxData, *goPackage, *protoOutDir, *addEnum); err != nil {
-			util.LogError("exec WriteToProto failed|filePath:%s|sheet:%s|outDir:%s -> %w", *filePath, *sheetName, *protoOutDir, err)
+			util.LogError("exec WriteToProto failed|file:%s|sheet:%s|err: %s", xlsxData.FileName(), xlsxData.SheetName(), err)
 		}
 	}
 
 	if *goOutDir != "" {
 		if err := golang.WriteToFile(xlsxData, *goPackage, *goOutDir, *addEnum); err != nil {
-			util.LogError("exec golang.WriteToFile failed|file:%s|sheet:%s -> %w", xlsxData.FileName(), xlsxData.SheetName(), err)
+			util.LogError("exec golang.WriteToFile failed|file:%s|sheet:%s|err: %s", xlsxData.FileName(), xlsxData.SheetName(), err)
 		}
 	}
 
 	if *jsonOutDir != "" {
 		if err := json.WriteToFile(xlsxData, *jsonOutDir); err != nil {
-			util.LogError("exec json.WriteToFile failed|filePath:%s|sheet:%s|outDir:%s -> %w", *filePath, *sheetName, *jsonOutDir, err)
+			util.LogError("exec json.WriteToFile failed|file:%s|sheet:%s|err: %s", xlsxData.FileName(), xlsxData.SheetName(), err)
 		}
 	}
 
 	if *xmlOutDir != "" {
 		if err := xml.WriteToFile(xlsxData, *xmlOutDir); err != nil {
-			util.LogError("exec xml.WriteToFile failed|filePath:%s|sheet:%s|outDir:%s -> %w", *filePath, *sheetName, *xmlOutDir, err)
+			util.LogError("exec xml.WriteToFile failed|file:%s|sheet:%s|err: %s", xlsxData.FileName(), xlsxData.SheetName(), err)
 		}
 	}
 

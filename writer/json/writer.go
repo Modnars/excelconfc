@@ -78,14 +78,44 @@ func buildLineData(astNode mcc.ASTNode, rowData []string, evm lex.EVM) (map[stri
 }
 
 func buildAllLineData(data lex.DataHolder) ([]map[string]any, error) {
+	if len(data.AST().SubNodes()) <= 0 {
+		return nil, fmt.Errorf("there is no header fields")
+	}
+
+	needCheckKey := data.ContainerType() == rules.CONTAINER_TYPE_MAP
+	keyIdxes := []int{}
+	if needCheckKey {
+		keyIdxes = lex.GetKeyFieldIdxes(data.AST())
+	}
+	confKeys := util.NewSet[string]()
+	errMsgs := []string{}
+
 	allLineData := []map[string]any{}
 	for i, rowData := range data.Data() {
+		rowKey, err := lex.GenConfKey(keyIdxes, rowData)
+		if err != nil {
+			errMsgs = append(errMsgs, fmt.Sprintf("row:%d|%s", rules.ROW_HEAD_MAX+1+i, err.Error()))
+		}
+		if confKeys.Contains(rowKey) {
+			errMsgs = append(errMsgs, fmt.Sprintf("row:%d|found a repeated key|key:%s", rules.ROW_HEAD_MAX+1+i, rowKey))
+		}
+		if needCheckKey {
+			confKeys.Add(rowKey)
+		}
 		lineData, err := buildLineData(data.AST(), rowData, data.EnumValMap())
 		if err != nil {
 			return nil, fmt.Errorf("row:%d,%w", rules.ROW_HEAD_MAX+1+i, err)
 		}
 		allLineData = append(allLineData, lineData)
 	}
+
+	if len(errMsgs) > 0 {
+		for _, errMsg := range errMsgs {
+			util.LogError(errMsg)
+		}
+		return nil, fmt.Errorf("config key error, please fix and try again")
+	}
+
 	return allLineData, nil
 }
 

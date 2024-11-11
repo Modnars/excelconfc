@@ -101,6 +101,10 @@ func writeAllLineData(wr io.Writer, data lex.DataHolder) error {
 	indent := 0
 	headLabel := data.SheetName()
 
+	if len(data.AST().SubNodes()) <= 0 {
+		return fmt.Errorf("there is no header fields")
+	}
+
 	switch data.ContainerType() {
 	case rules.CONTAINER_TYPE_MAP:
 		headLabel += "Map"
@@ -108,9 +112,28 @@ func writeAllLineData(wr io.Writer, data lex.DataHolder) error {
 		headLabel += "Vector"
 	}
 
+	needCheckKey := data.ContainerType() == rules.CONTAINER_TYPE_MAP
+	keyIdxes := []int{}
+	// 只有 map 类型的底层容器才需要检查重复索引
+	if needCheckKey {
+		keyIdxes = lex.GetKeyFieldIdxes(data.AST())
+	}
+	confKeys := util.NewSet[string]()
+	errMsgs := []string{}
+
 	fmt.Fprintf(wr, "<%s>\n<all_infos>\n", headLabel)
 	indent++
 	for i, rowData := range data.Data() {
+		rowKey, err := lex.GenConfKey(keyIdxes, rowData)
+		if err != nil {
+			errMsgs = append(errMsgs, fmt.Sprintf("row:%d|%s", rules.ROW_HEAD_MAX+1+i, err.Error()))
+		}
+		if confKeys.Contains(rowKey) {
+			errMsgs = append(errMsgs, fmt.Sprintf("row:%d|found a repeated key|key:%s", rules.ROW_HEAD_MAX+1+i, rowKey))
+		}
+		if needCheckKey {
+			confKeys.Add(rowKey)
+		}
 		fmt.Fprintf(wr, "%s<item>\n", util.IndentSpace(indent))
 		if err := writeLineData(wr, data.AST(), rowData, data.EnumValMap(), indent+1); err != nil {
 			return fmt.Errorf("row:%d,%w", rules.ROW_HEAD_MAX+1+i, err)
@@ -119,6 +142,13 @@ func writeAllLineData(wr io.Writer, data lex.DataHolder) error {
 	}
 	indent--
 	fmt.Fprintf(wr, "</all_infos>\n</%s>\n", headLabel)
+
+	if len(errMsgs) > 0 {
+		for _, errMsg := range errMsgs {
+			util.LogError(errMsg)
+		}
+		return fmt.Errorf("config key error, please fix and try again")
+	}
 
 	return nil
 }

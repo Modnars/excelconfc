@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"git.woa.com/modnarshen/excelconfc/compiler/mcc"
+	"git.woa.com/modnarshen/excelconfc/util"
 )
 
 func extractCellVal(cell string, asType string) (any, error) {
@@ -61,4 +62,28 @@ func CellValue(astNode mcc.ASTNode, cell string, evm EVM) (any, error) {
 		return result, nil
 	}
 	return extractCellVal(cell, astNode.Type())
+}
+
+func GetKeyFieldIdxes(node mcc.ASTNode) []int {
+	result := []int{}
+	for _, subNode := range node.SubNodes() {
+		if strings.Contains(subNode.Desc(), TOK_DESC_KEY) {
+			result = append(result, subNode.ColIdx())
+		}
+	}
+	if len(result) <= 0 && len(node.SubNodes()) > 0 {
+		result = append(result, node.SubNodes()[0].ColIdx())
+	}
+	return result
+}
+
+func GenConfKey(keyIdxes []int, rowData []string) (string, error) {
+	parts := []string{}
+	for _, keyIdx := range keyIdxes {
+		if len(rowData) <= keyIdx || rowData[keyIdx] == "" {
+			return "", fmt.Errorf("there is an empty index value|col:%s", util.ColumnName(keyIdx))
+		}
+		parts = append(parts, rowData[keyIdx])
+	}
+	return strings.Join(parts, "/"), nil
 }
