@@ -14,6 +14,7 @@ import (
 	"git.woa.com/modnarshen/excelconfc/writer/json"
 	"git.woa.com/modnarshen/excelconfc/writer/protobuf"
 	"git.woa.com/modnarshen/excelconfc/writer/xml"
+	"git.woa.com/modnarshen/excelconfc/writer/yaml"
 )
 
 func makeSureArgv(isPass bool, errMsg string) {
@@ -33,6 +34,7 @@ func main() {
 	goOutDir := flag.String("go_out", "", "Generate Go source file.")
 	jsonOutDir := flag.String("json_out", "", "Generate Json source file.")
 	xmlOutDir := flag.String("xml_out", "", "Generate XML source file.")
+	yamlOutDir := flag.String("yaml_out", "", "Generate Yaml source file.")
 	goPackage := flag.String("go_package", "excelconf", "target protobuf option go_package value")
 	groupLabel := flag.String("group", "server", "filter fields with group label, the label could be 'server', 'client' or 'all'")
 	addEnum := flag.Bool("add_enum", false, "add the enumeration values defined in the enumeration table to the current table output")
@@ -109,4 +111,9 @@ func main() {
 		}
 	}
 
+	if *yamlOutDir != "" {
+		if err := yaml.WriteToFile(xlsxData, *yamlOutDir); err != nil {
+			util.LogError("exec yaml.WriteToFile failed|file:%s|sheet:%s|err: %s", xlsxData.FileName(), xlsxData.SheetName(), err)
+		}
+	}
 }
