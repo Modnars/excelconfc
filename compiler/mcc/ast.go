@@ -88,7 +88,7 @@ func (n *astNode) SubNodes() []ASTNode {
 }
 
 func (n *astNode) String() string {
-	return fmt.Sprintf("%s name:%s type:%s colIdx:%d group:%b", n.lexVal, n.name, n.nodeType, n.colIdx, n.groupFlag)
+	return fmt.Sprintf("%s name:%s type:%s colIdx:%d group:0b%b", n.lexVal, n.name, n.nodeType, n.colIdx, n.groupFlag)
 }
 
 func NewASTNode(lexVal string, name string, nodeType, desc string, colIdx int, groupFlag uint8) ASTNode {
